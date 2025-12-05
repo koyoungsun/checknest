@@ -1,0 +1,159 @@
+/* common */
+// @import url(//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css);
+@import url(//i.gzcdn.net/mui/font/appfont/app/SpoqaHanSansNeo.css);
+
+* {font-family: 'Spoqa Han Sans Neo', 'sans-serif'; margin:0; padding:0;}
+ul, ol, li{list-style:none;}
+span, p{margin:0; padding:0;}
+a{text-decoration:none;}
+
+$n:null;
+$Spoqa:'Spoqa Han Sans Neo','sans-serif';
+
+// Mixin Common
+// Ellipsis Multi :ex) @include elpLine(2);
+@mixin elpLine($line: 1) {
+  @if ($line == 1) {
+    overflow:hidden; text-overflow:ellipsis; white-space: nowrap;
+  } @else {
+    display:-webkit-box; overflow:hidden; text-overflow:ellipsis; 
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:$line; 
+  }
+}
+
+// Background imgae  :ex) @include bgStyle("practice/ico_launch_1.png",0 0,no-repeat,25px);
+@mixin bgStyle($url, $bGposi, $repeat, $size) {
+  background:url("https://i.gzcdn.net/mui/img/" + $url) $bGposi $repeat; background-size: $size;
+}
+
+// Background imgae Add background-color :ex) @include bgStyle(#fff, "practice/ico_launch_1.png",0 0,no-repeat,25px);
+@mixin bgStyle-addC($bgColor, $url, $bGposi, $repeat, $size) {
+  background:$bgColor url("https://i.gzcdn.net/mui/img/" + $url) $bGposi $repeat; background-size: $size;
+}
+
+// Text 
+@mixin txt-none{font-size:0; line-height:0; text-indent:-30000em;}
+@mixin txt-fwc($txtSize,$txtWeight,$txtColor){font-size:$txtSize; font-weight:$txtWeight; color:$txtColor;}
+@mixin txt($txtSize,$txtWeight,$txtColor){font-size:$txtSize; font-weight:$txtWeight; color:$txtColor;}
+
+
+// Bottom EndingLine
+@mixin btm-line{border-bottom:10px solid #f6f6f6;}
+
+// width & height & line-height & display
+@mixin size($width, $height){width:$width; height:$height;}
+@mixin size-l($width, $height, $lineHeight){width:$width; height:$height; line-height:$lineHeight;}
+
+// Position 
+@mixin relatvie{position:relative;}
+@mixin absolute($tp,$ri,$bt,$le){position:absolute; top:$tp; right:$ri;bottom:$bt; left:$le;}
+@mixin fixed($tp,$ri,$bt,$le){position:fixed; top:$tp; right:$ri;bottom:$bt; left:$le;}
+
+// border
+@mixin border-all($border-val,$border-radius){
+    @if ($border-val == null ){
+        border-radius:$border-radius;
+    }
+    @else if($border-val == 0){
+        border:0;  border-radius:$border-radius;
+    }
+    @else {
+        border: $border-val; border-radius:$border-radius;
+    }
+}
+// box-sizing: border-box;
+@mixin border-box{box-sizing:border-box;}
+
+body{background-color:#eee; text-align:left; font-family: 'Spoqa Han Sans Neo', 'sans-serif';;}
+h2{color:#333; letter-spacing:-.1px; font-size:18px; font-weight:700;}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .section-title {
+  @apply font-semibold text-[17px] text-gray-800 mb-2;
+}
+
+.check-card {
+  @apply min-w-[65%] max-w-[65%] p-4 rounded-xl border shadow-sm;
+  flex-shrink: 0;
+  height: 120px; /* 고정 높이로 통일 */
+}
+
+.card-title {
+  @apply font-semibold text-gray-800 mb-1;
+}
+
+.card-sub {
+  @apply text-sm text-gray-500;
+}
+.check-card {
+  @apply bg-white p-4 rounded-xl shadow-sm border;
+}
+.swiper{width:100vw;}
+
+// Main Area
+.main-wrap{padding-bottom:100px;}
+
+// 나의 체크리스트 
+.my-check{background-color:#2272ed; padding:16px 0; letter-spacing:-.7x;
+    h2{ color:#fff; margin-bottom:16px; padding:0 16px;}
+    .swiper-slide{background-color:#fff; height:160px; border-radius:8px; padding:16px; box-sizing:border-box;
+        h3{font-size:16px;}
+        p{font-size:13px;}
+    }
+}
+
+// 최근 알림
+.recent-news{padding:24px 16px; background-color:#fff;
+    div a{display:block;}
+}
+
+// 최근 템플릿
+.recent-template{padding:24px 16px; background-color:#eaeaea;}
+
+// 최근 게시글
+.recent-board{padding:24px 16px; background-color:#fff;}
+
+// 하단 고정 네비게이션
+.flex-btm-nav{position:fixed; left:0; right:0; bottom:0; @include size-l(100%,80px,80px); background-color:#999; color:#fff; text-align:center;
+    a{color:#fff; display:inline-block; @include size-l(calc(25% - 20px),80px,80px);}
+}
+
+
+
+
+.app-header {position:sticky; top:0; left:0; right:0; z-index:1; width:auto; height:58px; background:#fff; border-bottom:1px solid rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: space-between;  padding: 0 14px;}
+
+/* 버튼 공통 */
+.icon-btn {width: 40px; height: 40px; padding: 0; background: none; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #333;}
+
+/* 중앙 타이틀 */
+.title {position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: 600; color: #222; margin: 0; pointer-events: none;}
+
+
+/* 슬라이드 네비 */
+.dimd{@include fixed(0,0,0,0); background-color: rgba(0,0,0,0.6); z-index:2;}
+.slide-nav {  position: fixed;  top: 0;  left: 0;  width: 260px;  height: 100%;  background: #fff;  transform: translateX(-100%);  transition: transform .35s ease;  z-index: 9999;  display: flex;  flex-direction: column;}
+.slide-nav--open {  transform: translateX(0);}
+/* 닫기 버튼 영역 */
+.top-bar {  display: flex;  justify-content: flex-end;  padding: 16px;}
+.close-btn {  font-size: 20px;  background: none;  border: none;  color: #555;}
+/* 프로필 */
+.profile-box {  padding: 20px 16px;  text-align: center;  border-bottom: 1px solid #eee;}
+.avatar {  width: 70px;  height: 70px;  background: #ddd;  border-radius: 50%;  margin: 0 auto 12px;}
+.nickname {  font-size: 18px;  font-weight: 600;}
+.mypage-link {  font-size: 13px;  color: #2563eb;}
+/* 메뉴 */
+.menu-list {  padding: 16px;}
+.menu-item {  display: block;  padding: 10px 0;  font-size: 16px;  color: #333;}
+.menu-item:hover {  color: #2563eb;}
+/* 하단 */
+.footer-menu {  margin-top: auto;  padding: 16px;  border-top: 1px solid #eee;}
+
+
+.bottom-nav {position: fixed; bottom: 0; left: 0; right: 0; height: 58px; background: #fff;
+  border-top: 1px solid #e5e5e5; display: flex; justify-content: space-around; align-items: center; z-index:1;}
+.nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px;  color: #555;}
+.nav-item i { font-size: 20px; margin-bottom: 2px;}
