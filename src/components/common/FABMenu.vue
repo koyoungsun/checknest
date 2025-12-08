@@ -18,8 +18,8 @@
     </transition-group>
 
     <!-- FAB 버튼 -->
-    <button class="btn-fab text-3xl relative z-50" @click="$emit('toggle')">
-      <i class="bi bi-plus-lg transition-transform duration-200" :class="open ? 'rotate-45' : ''" ></i>
+    <button class="btn-fab" @click="$emit('toggle')">
+      <strong>만들기</strong>
     </button>
   </div>
 </template>
@@ -42,11 +42,13 @@ const go = (path) => {
 </script>
 
 <style scoped>
-    .fab-item {@apply bg-white shadow-lg px-4 py-2 rounded-full text-sm text-gray-700 border border-gray-200;}
     .fab-enter-from, .fab-leave-to {opacity: 0; transform: translateY(10px);}
     .fab-enter-active, .fab-leave-active {transition: all 0.15s ease-out;}
-    .btn-fab{position:fixed; bottom:100px; right:10px; width:100px; height:100px; border-radius:50%;}
-    .open-btn{position:fixed; bottom:100px; right:130px; z-index:10; text-align:right;
-        li{margin:2px 0;}
+    .btn-fab{position:fixed; bottom:90px; right:10px; width:60px; height: 60px; border-radius:50%; border:0;}
+    .btn-fab strong{text-align:left; font-size:12px; letter-spacing:-1px; width:60px; display:block; bottom:90px; right:10px; position:fixed; height:60px; line-height:60px; text-align:center;}
+    .open-btn{position:fixed; bottom:60px; right:74px; z-index:10; text-align:right;
+        
     }
+    .open-btn li{margin:2px 0;}
+    .open-btn li button{font-size:12px; padding:3px 8px; background-color: #2272ed; border:0; border-radius:8px;}
 </style>

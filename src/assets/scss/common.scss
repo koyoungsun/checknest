@@ -65,16 +65,12 @@ $Spoqa:'Spoqa Han Sans Neo','sans-serif';
 // box-sizing: border-box;
 @mixin border-box{box-sizing:border-box;}
 
-body{background-color:#eee; text-align:left; font-family: 'Spoqa Han Sans Neo', 'sans-serif';;}
+body{background-color:#fff; text-align:left; font-family: 'Spoqa Han Sans Neo', 'sans-serif';;}
+h1{color:#000; font-size:24px;}
 h2{color:#333; letter-spacing:-.1px; font-size:18px; font-weight:700;}
-
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .section-title {
-  @apply font-semibold text-[17px] text-gray-800 mb-2;
-}
-
+h3{color:#666;}
+label, p,i,span{color:#666;}
+button{}
 .check-card {
   @apply min-w-[65%] max-w-[65%] p-4 rounded-xl border shadow-sm;
   flex-shrink: 0;
@@ -97,24 +93,52 @@ h2{color:#333; letter-spacing:-.1px; font-size:18px; font-weight:700;}
 .main-wrap{padding-bottom:100px;}
 
 // 나의 체크리스트 
-.my-check{background-color:#2272ed; padding:16px 0; letter-spacing:-.7x;
-    h2{ color:#fff; margin-bottom:16px; padding:0 16px;}
-    .swiper-slide{background-color:#fff; height:160px; border-radius:8px; padding:16px; box-sizing:border-box;
+.my-check{background: linear-gradient(to right,
+  #7a0663, #351cf1,#067fb7); padding:16px 0; letter-spacing:-.7px;
+    h2{ color:#fff; margin-bottom:16px; padding:0 16px;
+      a{float:right; font-size:12px; color:#eaeaea;}
+    }
+    .swiper-slide{background-color:#fff; height:160px; border-radius:8px; padding:16px; box-sizing:border-box; border-top:1px solid rgb(152, 143, 143); border-bottom:2px solid #2d2c31;
         h3{font-size:16px;}
         p{font-size:13px;}
     }
 }
 
 // 최근 알림
-.recent-news{padding:24px 16px; background-color:#fff;
-    div a{display:block;}
+.recent-news{clear:both; padding:24px 16px; background-color:#fff; border-bottom:8px solid #eee;
+    h2{font-size:16px; color:#121212; padding:0 0 8px;
+      a{float:right; font-size:12px;}
+    }
+    div{ clear:both;
+      a{display:block; border-bottom:1px solid #eee; font-size:14px;
+        &:last-child{border-bottom:0;}
+      }
+  }
 }
 
 // 최근 템플릿
-.recent-template{padding:24px 16px; background-color:#eaeaea;}
+.recent-template{padding:24px 16px; background-color:#fff; border-bottom:8px solid #eee;
+  h2{font-size:16px; color:#121212; padding:0 0 8px;
+    a{float:right; font-size:12px;}
+  }
+  div{ clear:both;
+    a{display:block; border-bottom:1px solid #eee; font-size:14px;
+      &:last-child{border-bottom:0;}
+    }
+  }
+}
 
 // 최근 게시글
-.recent-board{padding:24px 16px; background-color:#fff;}
+.recent-board{padding:24px 16px; background-color:#fff;
+  h2{font-size:16px; color:#121212; padding:0 0 8px;
+    a{float:right; font-size:12px;}
+  }
+  div{ clear:both;
+    a{display:block; border-bottom:1px solid #eee; font-size:14px;
+      &:last-child{border-bottom:0;}
+    }
+  }
+}
 
 // 하단 고정 네비게이션
 .flex-btm-nav{position:fixed; left:0; right:0; bottom:0; @include size-l(100%,80px,80px); background-color:#999; color:#fff; text-align:center;
@@ -124,10 +148,20 @@ h2{color:#333; letter-spacing:-.1px; font-size:18px; font-weight:700;}
 
 
 
-.app-header {position:sticky; top:0; left:0; right:0; z-index:1; width:auto; height:58px; background:#fff; border-bottom:1px solid rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: space-between;  padding: 0 14px;}
+.app-header {position:sticky; top:0; left:0; right:0; z-index:10; width:auto; height:58px; background:#fff; border-bottom:1px solid rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: space-between;  padding: 0 14px;
+  i{color:#333;}
+  .btn-right{position:absolute; right:16px;
+    button{float:right;}
+  }
+  .ico-alarm{display:inline-block;
+    width:40px; height:40px; position:relative;
+      span{position:absolute; right:0; top:0; font-size:12px;
+      text-align:right; padding:5px; border-radius:50%; background-color:#f00; color:#fff;}
+    }
+}
 
 /* 버튼 공통 */
-.icon-btn {width: 40px; height: 40px; padding: 0; background: none; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #333;}
+.icon-btn {width: 40px; height: 40px; padding: 0; background: none; border: none;  font-size: 24px; color: #333;}
 
 /* 중앙 타이틀 */
 .title {position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: 600; color: #222; margin: 0; pointer-events: none;}

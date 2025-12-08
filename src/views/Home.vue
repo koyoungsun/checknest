@@ -42,32 +42,11 @@
           </SwiperSlide>
         </Swiper>
         </section>
-        <!-- -------- 개인화 알림 -------- -->
-        <section class="mb-6 recent-news">
-          <h2 class="font-semibold text-gray-700 mb-2">최근 알림
-            <router-link to="/notifications" class="block text-right mt-2 text-sm text-blue-600">전체 보기 ▸</router-link>
-          </h2>
-  
-          <div class="bg-white rounded-xl shadow-sm border divide-y">
-            <router-link to="/notifications" class="block p-3 hover:bg-gray-50">
-              <i></i>여권 준비 체크됨 (5분 전)
-            </router-link>
-            <router-link to="/notifications" class="block p-3 hover:bg-gray-50">
-              <i></i>새 메시지 2개 (어제)
-            </router-link>
-            <router-link to="/notifications" class="block p-3 hover:bg-gray-50">
-              <i></i>항목 추가됨 (1일 전)
-            </router-link>
-          </div>
-  
-          <!-- 배너존 #1 -->
-          <div v-if="banner1"
-               class="mt-3 bg-white rounded-xl overflow-hidden shadow-sm border">
-            <img :src="banner1.image" class="w-full object-cover" />
-          </div>
-  
-          
-        </section>
+        <!-- 배너존 #1 -->
+        <div v-if="banner1"
+              class="mt-3 bg-white rounded-xl overflow-hidden shadow-sm border">
+          <img :src="banner1.image" class="w-full object-cover" />
+        </div>
         <!-- -------- 최근 템플릿 -------- -->
         <section class="mb-6 recent-template">
           <h2 class="font-semibold text-gray-700 mb-2">최근 템플릿
