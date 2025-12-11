@@ -1,8 +1,8 @@
 <template>
-    <div class="bg-gray-50">
+    <div class="bg-gray-50 pt-[100px] relative z-10">
   
       <!-- 검색창 -->
-      <section class="px-4 pt-3">
+      <section class="px-4 pt-3 relative z-20">
         <div class="bg-white border border-gray-200 rounded-xl px-3 py-2 flex items-center shadow-sm">
           <i class="bi bi-search text-gray-500 mr-2 text-sm"></i>
           <input

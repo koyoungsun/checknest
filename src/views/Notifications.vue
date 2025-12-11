@@ -1,8 +1,9 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col">
+    <PageSubtitle />
 
     <!-- 알림 리스트 -->
-    <main class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+    <main class="flex-1 overflow-y-auto space-y-0 content-wrapper">
 
       <!-- 알림 없음 -->
       <div
@@ -18,31 +19,40 @@
         v-for="n in notifications"
         :key="n.id"
         @click="openNotification(n)"
-        class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition flex items-start gap-3"
+        class="list-card list-item"
+        :class="!n.read ? 'bg-blue-50/30 border-blue-200' : ''"
       >
+        <div class="flex items-start gap-3">
+          <!-- 왼쪽 아이콘 -->
+          <div class="mt-0.5 flex-shrink-0">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                 :class="n.type === 'invite' ? 'bg-blue-50' : n.type === 'check' ? 'bg-green-50' : 'bg-gray-50'">
+              <i :class="iconClass(n.type)" class="text-lg"></i>
+            </div>
+          </div>
 
-        <!-- 왼쪽 아이콘 -->
-        <div class="mt-0.5">
-          <i :class="iconClass(n.type)" class="text-xl"></i>
+          <!-- 내용 -->
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-sm leading-snug mb-1"
+              :class="n.read ? 'text-gray-600' : 'font-semibold text-gray-900'"
+            >
+              {{ n.message }}
+            </p>
+
+            <div class="flex items-center gap-2">
+              <p class="text-[11px] text-gray-400 flex items-center gap-1">
+                <i class="bi bi-clock text-[10px]"></i>
+                {{ formatRelativeTime(n.time) }}
+              </p>
+            </div>
+          </div>
+
+          <!-- 읽지 않음 표시 -->
+          <div v-if="!n.read" class="flex-shrink-0 mt-1">
+            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+          </div>
         </div>
-
-        <!-- 내용 -->
-        <div class="flex-1">
-          <p
-            class="text-sm leading-snug"
-            :class="n.read ? 'text-gray-600' : 'font-semibold text-gray-900'"
-          >
-            {{ n.message }}
-          </p>
-
-          <p class="text-[11px] text-gray-400 mt-1">
-            {{ formatTime(n.time) }}
-          </p>
-        </div>
-
-        <!-- 읽지 않음 표시 점 -->
-        <div v-if="!n.read" class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-
       </div>
 
     </main>
@@ -52,7 +62,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import AppHeader from "@/components/layout/AppHeader.vue"; // 경로는 프로젝트에 맞게 조정
+import { formatRelativeTime } from "@/utils/dateUtils";
+import PageSubtitle from "@/components/common/PageSubtitle.vue";
 
 const router = useRouter();
 
@@ -98,19 +109,6 @@ const iconClass = (type: string) => {
   }
 };
 
-// 🕒 시간 표시 포맷
-const formatTime = (timestamp: number) => {
-  const diff = Date.now() - timestamp;
-  const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(mins / 60);
-  const days = Math.floor(hours / 24);
-
-  if (mins < 1) return "방금 전";
-  if (mins < 60) return `${mins}분 전`;
-  if (hours < 24) return `${hours}시간 전`;
-  return `${days}일 전`;
-};
-
 // 알림 클릭
 const openNotification = (n: any) => {
   n.read = true;
@@ -119,12 +117,10 @@ const openNotification = (n: any) => {
     router.push(`/checklists/${n.targetId}`);
   }
 };
-
-// 우측 슬라이드 메뉴 열기
-const openMenu = () => {
-  console.log("OPEN RIGHT MENU FROM NOTIFICATIONS");
-};
 </script>
 
 <style scoped>
+.content-wrapper {
+  padding: 16px;
+}
 </style>

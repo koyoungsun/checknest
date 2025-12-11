@@ -1,90 +1,70 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref, computed } from "vue";
+import { useRoute } from "vue-router";
+import { useBottomSheet } from "@/composables/useBottomSheet";
 
 import AppHeader from "@/components/layout/AppHeader.vue";
 import SlideNav from "@/components/layout/SlideNav.vue";
 import BottomNav from "@/components/layout/BottomNav.vue";
-import BottomSheet from "@/components/common/BottomSheet.vue"; // ⭐ 추가됨
+import BottomSheet from "@/components/common/BottomSheet.vue";
 
-// ===== 상태 =====
+const route = useRoute();
+const {
+  isOpen: sheetOpen,
+  open: openSheet,
+  close: closeSheet,
+  goToChecklistCreate,
+  goToTemplateCreate,
+  goToPostWrite,
+} = useBottomSheet();
+
+// 사이드 메뉴
 const sideOpen = ref(false);
-const sheetOpen = ref(false); // ⭐ 바텀시트 상태 추가
-
 const openMenu = () => (sideOpen.value = true);
 const closeMenu = () => (sideOpen.value = false);
 
-const openSheet = () => (sheetOpen.value = true);
-const closeSheet = () => (sheetOpen.value = false);
-
-const router = useRouter();
-const route = useRoute();
-
-// ===== 바텀시트 액션 =====
-const goCreateChecklist = () => {
-  sheetOpen.value = false;
-  router.push("/checklists/create");
-};
-
-const goCreateTemplate = () => {
-  sheetOpen.value = false;
-  router.push("/templates/create");
-};
-
-const goWritePost = () => {
-  sheetOpen.value = false;
-  router.push("/posts/write");
-};
-
-// ===== 하단 네비/헤더 표시 제어 =====
+// 바텀 네비 표시 여부
 const showBottomNav = computed(() => route.meta.bottomNav !== false);
-</script>
 
+// 헤더 숨김 여부 (로그인, 회원가입 등에서 사용)
+const hideHeader = computed(() => route.meta.hideHeader === true);
+</script>
 
 <template>
   <div class="app-wrap relative min-h-screen bg-gray-50">
 
-    <!-- ===== 상단 헤더 ===== -->
+    <!-- === 헤더 (숨김 옵션 적용) === -->
     <AppHeader
-      :showBack="route.meta.showBack === true"
+      v-if="!hideHeader"
       @open-menu="openMenu"
     />
 
-    <!-- ===== 사이드 네비 ===== -->
+    <!-- === 사이드 네비 === -->
     <SlideNav :open="sideOpen" @close="closeMenu" />
 
-    <!-- ===== 페이지 콘텐츠 ===== -->
-    <main class="page-content pt-[56px] pb-[70px]">
+    <!-- === 페이지 콘텐츠 === -->
+    <main
+      class="page-content"
+      :class="{
+        'pt-0': hideHeader          // 로그인/회원가입 등
+      }"
+    >
       <router-view />
     </main>
 
-    <!-- ===== 하단 네비 + 바텀시트 ===== -->
+    <!-- === 하단 네비 === -->
     <BottomNav
-      v-if="showBottomNav"
+      v-if="showBottomNav && !hideHeader"
       @open-sheet="openSheet"
     />
 
+    <!-- === 바텀시트 === -->
     <BottomSheet
       :open="sheetOpen"
       @close="closeSheet"
-      @create-checklist="goCreateChecklist"
-      @create-template="goCreateTemplate"
-      @write-post="goWritePost"
+      @create-checklist="goToChecklistCreate"
+      @create-template="goToTemplateCreate"
+      @write-post="goToPostWrite"
     />
-
   </div>
 </template>
-
-
-<style scoped>
-.app-wrap {
-  overflow-x: hidden;
-  position: relative;
-}
-
-/* page-content 기본 여백 */
-.page-content {
-  min-height: calc(100vh - 56px);
-  overflow-y: auto;
-}
-</style>

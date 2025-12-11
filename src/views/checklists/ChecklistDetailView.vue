@@ -1,5 +1,6 @@
 <template>
     <div class="min-h-screen bg-gray-50 flex flex-col">
+      <PageSubtitle />
   
       <!-- 상단 헤더 -->
       <header class="flex items-center px-4 h-14 border-b bg-white">
@@ -15,7 +16,7 @@
       </header>
   
       <!-- 메인 내용 -->
-      <main class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+      <main class="flex-1 overflow-y-auto detail-content space-y-6">
   
         <!-- 체크리스트 기본 정보 카드 -->
         <section class="bg-white rounded-xl shadow-sm p-4 space-y-2 border">
@@ -47,9 +48,9 @@
             <span>진행률</span>
             <span>{{ checklist.progress }}%</span>
           </div>
-          <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div class="progress-bar">
             <div
-              class="h-full bg-blue-600 transition-all"
+              class="progress-fill"
               :style="{ width: checklist.progress + '%' }"
             ></div>
           </div>
@@ -122,6 +123,7 @@
   <script setup lang="ts">
   import { ref } from "vue";
   import { useRouter } from "vue-router";
+  import PageSubtitle from "@/components/common/PageSubtitle.vue";
   
   const router = useRouter();
   
@@ -155,7 +157,10 @@
   
   // 항목 상태 변경
   const toggleItem = (index: number) => {
-    checklist.value.items[index].checked = !checklist.value.items[index].checked;
+    const item = checklist.value.items[index];
+    if (item) {
+      item.checked = !item.checked;
+    }
   };
   
   // 메뉴 액션 (가라)

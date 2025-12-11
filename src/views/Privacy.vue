@@ -1,5 +1,6 @@
 <template>
-    <div class="min-h-screen bg-gray-50 flex flex-col">  
+    <div class="min-h-screen bg-gray-50 flex flex-col">
+      <PageSubtitle />
       <!-- 본문 -->
       <main class="flex-1 overflow-y-auto px-4 py-4 text-sm leading-relaxed bg-white">
         <h1 class="text-lg font-semibold mb-4">개인정보 처리방침</h1>
@@ -91,11 +92,7 @@
   </template>
   
   <script setup lang="ts">
-  import AppHeader from "../components/layout/AppHeader.vue";
-  
-  const openMenu = () => {
-    console.log("open menu from Privacy page");
-  };
+  import PageSubtitle from "@/components/common/PageSubtitle.vue";
   </script>
   
   <style scoped>

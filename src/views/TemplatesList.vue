@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col">
+    <PageSubtitle />
     <!-- 검색 영역 -->
     <section class="px-4 py-3 bg-white border-b">
       <div class="flex items-center bg-gray-100 rounded-lg px-3 py-2">
@@ -31,33 +32,57 @@
     </section>
 
     <!-- 템플릿 리스트 -->
-    <main class="flex-1 overflow-y-auto px-4 py-4">
-
-      <!-- 템플릿 카드 반복 -->
-      <div class="grid grid-cols-2 gap-4">
+    <main class="flex-1 overflow-y-auto content-wrapper">
+      <!-- 템플릿 리스트 -->
+      <div v-if="filteredTemplates.length > 0" class="space-y-0">
         <div
           v-for="tpl in filteredTemplates"
           :key="tpl.id"
           @click="goDetail(tpl.id)"
-          class="bg-white rounded-xl shadow-sm border p-4 cursor-pointer hover:shadow-md transition"
+          class="list-card list-item"
         >
-          <!-- 썸네일 -->
-          <div
-            class="w-full h-24 bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-gray-400"
-          >
-            <i class="bi bi-card-checklist text-2xl"></i>
+          <div class="flex items-start gap-4">
+            <!-- 아이콘 영역 -->
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i class="bi bi-card-checklist text-xl text-blue-600"></i>
+            </div>
+
+            <!-- 템플릿 정보 -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2 mb-1">
+                <h3 class="font-semibold text-sm text-gray-900 truncate">
+                  {{ tpl.title }}
+                </h3>
+                <span class="badge badge--gray flex-shrink-0">
+                  {{ tpl.category }}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                <span class="flex items-center gap-1">
+                  <i class="bi bi-list-check text-xs"></i>
+                  항목 {{ tpl.items }}개
+                </span>
+                <span class="flex items-center gap-1">
+                  <i class="bi bi-people text-xs"></i>
+                  사용 {{ tpl.used }}회
+                </span>
+              </div>
+            </div>
+
+            <!-- 화살표 -->
+            <div class="flex items-center text-gray-400 flex-shrink-0">
+              <i class="bi bi-chevron-right"></i>
+            </div>
           </div>
-
-          <!-- 템플릿 제목 -->
-          <p class="font-semibold text-sm truncate">{{ tpl.title }}</p>
-
-          <!-- 항목 수 + 사용 횟수 -->
-          <p class="text-xs text-gray-500 mt-1">
-            항목 {{ tpl.items }}개 · 사용 {{ tpl.used }}회
-          </p>
         </div>
       </div>
 
+      <!-- 템플릿 없을 때 -->
+      <div v-else class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p>검색 결과가 없습니다.</p>
+      </div>
     </main>
   </div>
 </template>
@@ -65,6 +90,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import PageSubtitle from "@/components/common/PageSubtitle.vue";
 
 const router = useRouter();
 
@@ -119,3 +145,9 @@ const goDetail = (id) => {
   router.push(`/templates/${id}`);
 };
 </script>
+
+<style scoped>
+.content-wrapper {
+  padding: 16px;
+}
+</style>

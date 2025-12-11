@@ -1,5 +1,6 @@
 <template>
     <div class="min-h-screen bg-gray-50 flex flex-col">
+      <PageSubtitle />
   
       <!-- 상단 헤더 -->
       <header class="flex items-center px-4 h-14 border-b bg-white">
@@ -18,7 +19,7 @@
       </div>
   
       <!-- 게시글 내용 -->
-      <main v-else class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+      <main v-else class="flex-1 overflow-y-auto detail-content space-y-6">
   
         <!-- 게시글 카드 -->
         <section class="bg-white rounded-xl p-4 shadow-sm border">
@@ -28,7 +29,7 @@
             <div class="w-10 h-10 bg-gray-200 rounded-full"></div>
             <div>
               <p class="text-sm font-semibold">{{ post.author }}</p>
-              <p class="text-xs text-gray-400">{{ formatDate(post.createdAt) }}</p>
+              <p class="text-xs text-gray-400">{{ formatRelativeTime(post.createdAt) }}</p>
             </div>
           </div>
   
@@ -78,7 +79,7 @@
             class="bg-white p-3 rounded-xl border shadow-sm"
           >
             <p class="text-sm font-semibold">{{ c.author }}</p>
-            <p class="text-xs text-gray-400 mb-2">{{ formatDate(c.createdAt) }}</p>
+            <p class="text-xs text-gray-400 mb-2">{{ formatRelativeTime(c.createdAt) }}</p>
             <p class="text-sm text-gray-700 whitespace-pre-line">{{ c.text }}</p>
           </div>
   
@@ -107,17 +108,36 @@
     </div>
   </template>
   
-  <script setup>
-  import { ref, onMounted } from "vue";
-  import { useRoute, useRouter } from "vue-router";
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { formatRelativeTime } from "@/utils/dateUtils";
+import PageSubtitle from "@/components/common/PageSubtitle.vue";
   
   const router = useRouter();
   const route = useRoute();
   
+  interface Post {
+    id: string;
+    author: string;
+    title: string;
+    content: string;
+    image: string;
+    createdAt: number;
+    likes: number;
+    liked: boolean;
+    comments: Array<{
+      id: string;
+      author: string;
+      text: string;
+      createdAt: number;
+    }>;
+  }
+  
   // -------------------------
   // 더미 게시글 데이터 (Firestore 연결 전)
   // -------------------------
-  const dummyPosts = [
+  const dummyPosts: Post[] = [
     {
       id: "p1",
       author: "Aiden",
@@ -138,31 +158,16 @@
     },
   ];
   
-  const post = ref(null);
+  const post = ref<Post | null>(null);
   const newComment = ref("");
   
   // -------------------------
   // 게시글 로드
   // -------------------------
   onMounted(() => {
-    const id = route.params.id;
+    const id = route.params.id as string;
     post.value = dummyPosts.find((p) => p.id === id) || null;
   });
-  
-  // -------------------------
-  // 시간 포맷
-  // -------------------------
-  const formatDate = (timestamp) => {
-    const diff = Date.now() - timestamp;
-    const mins = Math.floor(diff / 60000);
-    const hours = Math.floor(mins / 60);
-    const days = Math.floor(hours / 24);
-  
-    if (mins < 1) return "방금 전";
-    if (mins < 60) return `${mins}분 전`;
-    if (hours < 24) return `${hours}시간 전`;
-    return `${days}일 전`;
-  };
   
   // -------------------------
   // 좋아요 토글
@@ -178,7 +183,7 @@
   // 댓글 추가
   // -------------------------
   const addComment = () => {
-    if (!newComment.value.trim()) return;
+    if (!newComment.value.trim() || !post.value) return;
   
     post.value.comments.push({
       id: "c" + Date.now(),

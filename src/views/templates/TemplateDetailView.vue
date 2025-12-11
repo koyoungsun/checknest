@@ -1,6 +1,7 @@
 
 <template>
     <div class="min-h-screen bg-gray-50 flex flex-col">
+      <PageSubtitle />
   
       <!-- 상단 헤더 -->
       <header class="flex items-center px-4 h-14 border-b bg-white">
@@ -13,7 +14,7 @@
       </header>
   
       <!-- 상세 내용 -->
-      <main class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+      <main class="flex-1 overflow-y-auto detail-content space-y-6">
   
         <!-- 템플릿 설명 -->
         <section class="bg-white p-4 rounded-xl border shadow-sm">
@@ -60,6 +61,7 @@
   <script setup>
   import { ref, onMounted } from "vue";
   import { useRoute, useRouter } from "vue-router";
+  import PageSubtitle from "@/components/common/PageSubtitle.vue";
   
   const route = useRoute();
   const router = useRouter();

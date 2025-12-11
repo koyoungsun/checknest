@@ -1,74 +1,90 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
-import { useNotifications } from "../../composables/useNotifications";
+import { useNotifications } from "@/composables/useNotifications";
 
 const route = useRoute();
 const router = useRouter();
-
-// 전역 알림 카운트
 const { unreadCount } = useNotifications();
 
+// 뒤로가기
 const goBack = () => router.back();
+
+// 홈 이동
+const goHome = () => router.push("/");
 </script>
 
 <template>
-  <header class="app-header flex items-center justify-between h-14 px-4 border-b bg-white">
+  <!-- ========================= -->
+  <!--       전체 헤더 래퍼       -->
+  <!-- ========================= -->
+  <header class="bg-white border-b shadow-sm app-header">
 
-    <!-- 🔹 왼쪽 영역 -->
-    <div class="flex items-center">
-      <!-- 뒤로가기 버튼 -->
-      <button
-        v-if="route.meta.back"
-        class="icon-btn mr-2"
-        @click="goBack"
+    <!-- ========================= -->
+    <!--        1층: 글로벌 헤더       -->
+    <!-- ========================= -->
+    <div class="top-area">
+
+      <!-- 좌측: 검색 또는 뒤로가기 -->
+      <div class="btn-l">
+        <!-- 뒤로가기 -->
+        <button
+          v-if="route.meta.back"
+          class="icon-btn mr-2"
+          @click="goBack"
+        >
+          <i class="btn-back bi bi-arrow-left text-lg"></i>
+        </button>
+
+        <!-- 검색 버튼 -->
+        <button
+          v-else-if="route.meta.showSearch !== false"
+          class="icon-btn mr-2"
+          @click="router.push('/search')"
+        >
+          <i class="bi bi-search text-lg"></i>
+        </button>
+
+        <!-- 자리가 비었을 때 간격 유지 -->
+        <div v-else class="w-6"></div>
+      </div>
+
+      <!-- 중앙: 로고 -->
+      <h1 
+        class="top-logo"
+        @click="goHome"
       >
-        <i class="bi bi-arrow-left text-lg"></i>
-      </button>
+        CHECK<span>NEST</span>
+      </h1>
 
-      <!-- 왼쪽에 아무것도 없을 때 공간 유지 -->
-      <div v-else class="w-6"></div>
-    </div>
+      <!-- 우측: 알림 + 메뉴 -->
+      <div class="btn-r">
 
-    <!-- 🔹 중앙 타이틀 -->
-    <h1 class="font-semibold text-base truncate max-w-[140px] text-center">
-      {{ route.meta.title || "CHECKNEST" }}
-    </h1>
+        <!-- 알림 -->
+        <button
+          v-if="route.meta.showNotification !== false"
+          class="icon-btn relative ico-alarm"
+          @click="router.push('/notifications')"
+        >
+          <i class="bi bi-bell text-lg"></i>
 
-    <!-- 🔹 오른쪽 버튼 영역 -->
-    <div class="flex items-center gap-1">
+          <span
+            v-if="unreadCount > 0"
+            class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full"
+          >
+            {{ unreadCount }}
+          </span>
+        </button>
 
-      <!-- 🔔 알림 버튼 (showNotification !== false 이면 기본 표시) -->
-      <button
-        v-if="route.meta.showNotification !== false"
-        class="icon-btn relative ico-alarm"
-        @click="router.push('/notifications')"
-      >
-        <i class="bi bi-bell text-lg"></i>
+        <!-- 메뉴 버튼 -->
+        <button
+          v-if="route.meta.menu !== false"
+          class="icon-btn"
+          @click="$emit('open-menu')"
+        >
+          <i class="btn-menu bi bi-list text-xl"></i>
+        </button>
 
-        <!-- 알림 카운트 배지 -->
-        <span v-if="unreadCount > 0" class="count" >
-          {{ unreadCount }}
-        </span>
-      </button>
-
-      <!-- 검색 버튼 (showSearch = false면 숨김) -->
-      <button
-        v-if="route.meta.showSearch !== false"
-        class="icon-btn"
-        @click="router.push('/search')"
-      >
-        <i class="bi bi-search text-lg"></i>
-      </button>
-
-      <!-- 메뉴 버튼 (menu = false면 숨김) -->
-      <button
-        v-if="route.meta.menu !== false"
-        class="icon-btn"
-        @click="$emit('open-menu')"
-      >
-        <i class="bi bi-list text-lg"></i>
-      </button>
-
+      </div>
     </div>
 
   </header>

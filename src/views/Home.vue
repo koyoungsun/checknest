@@ -3,7 +3,7 @@
       <!-- ================= MAIN CONTENT ================= -->
       <main class="flex-1 pb-24 px-4">
         <!-- -------- 정렬 옵션 -------- -->
-        <div class="flex justify-end my-4" style="display:none;">
+        <div class="flex justify-end my-4 hidden">
           <button @click="openSort" class="px-3 py-1 bg-white border rounded-lg shadow-sm text-sm">정렬 ▾</button>
         </div>
         <!-- -------- 스와이프 체크리스트 -------- -->
@@ -45,7 +45,7 @@
         <!-- 배너존 #1 -->
         <div v-if="banner1"
               class="mt-3 bg-white rounded-xl overflow-hidden shadow-sm border">
-          <img :src="banner1.image" class="w-full object-cover" />
+          <img :src="banner1?.image" class="w-full object-cover" />
         </div>
         <!-- -------- 최근 템플릿 -------- -->
         <section class="mb-6 recent-template">
@@ -76,7 +76,7 @@
           <!-- 배너존 #2 -->
           <div v-if="banner2"
                class="mt-3 bg-white rounded-xl overflow-hidden shadow-sm border">
-            <img :src="banner2.image" class="w-full object-cover" />
+            <img :src="banner2?.image" class="w-full object-cover" />
           </div>
   
           
@@ -115,20 +115,13 @@
     import { Swiper, SwiperSlide } from "swiper/vue";
     import "swiper/css";
     import { ref } from "vue";
-    import AppHeader from "@/components/layout/AppHeader.vue";
-    import SideMenu from "@/components/layout/SideMenu.vue";
 
-    const isMenuOpen = ref(false);
+    interface Banner {
+      image: string;
+    }
 
-    const openMenu = () => {
-      isMenuOpen.value = true;
-    };
-
-    const closeMenu = () => {
-      isMenuOpen.value = false;
-    };
-    const banner1 = null
-    const banner2 = null
+    const banner1 = ref<Banner | null>(null);
+    const banner2 = ref<Banner | null>(null);
 
     const openSort = () => {
         console.log("open sort bottom sheet");
