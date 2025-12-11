@@ -1,56 +1,64 @@
-<template>
+  <template>
     <!-- 오버레이 -->
-    <div
-      v-if="open"
-      class="dimd"
-      @click="close"
-    ></div>
-  
-    <!-- 바텀시트 -->
-    <transition name="slide-up">
+    <transition name="fade-dimd">
       <div
         v-if="open"
-        class="btm-sht fixed bottom-0 left-0 w-full bg-white rounded-t-2xl shadow-xl z-50 p-6 flex flex-col items-center"
-        @click.stop
+        class="dimd"
+        @click="close"
+      ></div>
+    </transition>
+  
+    <!-- 바텀시트 -->
+    <transition name="fade">
+      <div
+        v-if="open"
+        class="btm-sht fixed inset-0 flex items-center justify-center z-50"
+        @click.stop="close"
       >
-        <h2 class="text-lg font-semibold mb-4 text-center">무엇을 만들까요?</h2>
-  
-        <!-- 메뉴 버튼 목록 -->
-        <div class="space-y-3 w-full flex flex-col items-center">
-  
-          <button
-            class="sheet-item btm-sheet-btn"
-            @click.stop="emitCreate('checklist')"
-          >
-            <i class="bi bi-card-checklist text-blue-600"></i>
-            체크리스트 만들기
-            <i class="bi bi-chevron-right ml-auto"></i>
-          </button>
-  
-          <button
-            class="sheet-item btm-sheet-btn"
-            @click.stop="emitCreate('template')"
-          >
-            <i class="bi bi-collection text-purple-600"></i>
-            템플릿 만들기
-            <i class="bi bi-chevron-right ml-auto"></i>
-          </button>
-  
-          <button
-            class="sheet-item btm-sheet-btn"
-            @click.stop="emitCreate('post')"
-          >
-            <i class="bi bi-pencil-square text-green-600"></i>
-            게시글 쓰기
-            <i class="bi bi-chevron-right ml-auto"></i>
-          </button>
-  
+        <div
+          class="btm-sht-content bg-white rounded-2xl shadow-xl p-6 flex flex-col items-center"
+          @click.stop
+        >
+          <!-- 헤더: 타이틀과 닫기 버튼 -->
+          <div class="btm-sht-header">
+            <h2 class="btm-sht-title">무엇을 만들까요?</h2>
+            <button class="btm-sht-close-btn" @click.stop="close">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+    
+          <!-- 메뉴 버튼 목록 -->
+          <div class="w-full flex flex-col items-center btm-sht-buttons">
+    
+            <button
+              class="sheet-item btm-sheet-btn"
+              @click.stop="emitCreate('checklist')"
+            >
+              <i class="bi bi-card-checklist"></i>
+              체크리스트 만들기
+              <i class="bi bi-chevron-right ml-auto"></i>
+            </button>
+    
+            <button
+              class="sheet-item btm-sheet-btn"
+              @click.stop="emitCreate('template')"
+            >
+              <i class="bi bi-collection"></i>
+              템플릿 만들기
+              <i class="bi bi-chevron-right ml-auto"></i>
+            </button>
+    
+            <button
+              class="sheet-item btm-sheet-btn"
+              @click.stop="emitCreate('post')"
+            >
+              <i class="bi bi-pencil-square"></i>
+              게시글 쓰기
+              <i class="bi bi-chevron-right ml-auto"></i>
+            </button>
+    
+          </div>
         </div>
-  
-        <!-- 닫기 버튼 -->
-        <button class="mt-6 w-full py-3 bg-gray-100 rounded-xl text-center btm-sheet-btn" @click.stop="close">
-          닫기
-        </button>
       </div>
     </transition>
   </template>

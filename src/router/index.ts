@@ -96,9 +96,11 @@ const routes = [
     meta: {
       title: "나의 체크리스트",
       subtitle: "내 체크리스트 목록",
-      back: true,
+      back: true, // PageSubtitle의 이전 버튼 표시용
       menu: true,
       bottomNav: true,
+      showSearch: true, // 헤더에 검색 버튼 표시
+      hideHeaderBack: true, // 헤더의 이전 버튼 숨김
     },
   },
   {
@@ -221,11 +223,12 @@ const routes = [
     meta: {
       title: "게시글 / 공유",
       subtitle: "게시글 목록",
-      back: false,
+      back: true, // PageSubtitle의 이전 버튼 표시용
       menu: true,
       bottomNav: true,
-      showSearch: true,
+      showSearch: true, // 헤더에 검색 버튼 표시
       showNotification: true,
+      hideHeaderBack: true, // 헤더의 이전 버튼 숨김
     },
   },
   {

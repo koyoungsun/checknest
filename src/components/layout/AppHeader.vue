@@ -26,22 +26,22 @@ const goHome = () => router.push("/");
 
       <!-- 좌측: 검색 또는 뒤로가기 -->
       <div class="btn-l">
-        <!-- 뒤로가기 -->
+        <!-- 뒤로가기 (hideHeaderBack이 true가 아닐 때만 표시) -->
         <button
-          v-if="route.meta.back"
+          v-if="route.meta.back && route.meta.hideHeaderBack !== true"
           class="icon-btn mr-2"
           @click="goBack"
         >
-          <i class="btn-back bi bi-arrow-left text-lg"></i>
+          <i class="btn-back bi bi-arrow-left"></i>
         </button>
 
-        <!-- 검색 버튼 -->
+        <!-- 검색 버튼 (hideHeaderBack이 true이거나 back이 false일 때) -->
         <button
           v-else-if="route.meta.showSearch !== false"
           class="icon-btn mr-2"
           @click="router.push('/search')"
         >
-          <i class="bi bi-search text-lg"></i>
+          <i class="bi bi-search"></i>
         </button>
 
         <!-- 자리가 비었을 때 간격 유지 -->
@@ -58,14 +58,13 @@ const goHome = () => router.push("/");
 
       <!-- 우측: 알림 + 메뉴 -->
       <div class="btn-r">
-
         <!-- 알림 -->
         <button
           v-if="route.meta.showNotification !== false"
           class="icon-btn relative ico-alarm"
           @click="router.push('/notifications')"
         >
-          <i class="bi bi-bell text-lg"></i>
+          <i class="bi bi-bell"></i>
 
           <span
             v-if="unreadCount > 0"
@@ -81,9 +80,8 @@ const goHome = () => router.push("/");
           class="icon-btn"
           @click="$emit('open-menu')"
         >
-          <i class="btn-menu bi bi-list text-xl"></i>
+          <i class="btn-menu bi bi-list"></i>
         </button>
-
       </div>
     </div>
 

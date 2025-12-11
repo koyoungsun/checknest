@@ -39,7 +39,7 @@ const handleFabClick = () => {
 <style scoped>
 .bottom-nav {
   @apply fixed bottom-0 left-0 w-full z-30 h-[60px] flex justify-around items-center;
-  background-color: var(--color-primary);
+  background: linear-gradient(to bottom, #e55a2b, var(--color-primary, #ff6b35));
   border: 0;
   border-radius: 2px;
 }
@@ -58,15 +58,19 @@ const handleFabClick = () => {
 }
 
 .fab-button {
-  @apply w-14 h-14 flex items-center justify-center shadow-lg -mt-8;
+  @apply flex items-center justify-center shadow-lg -mt-8;
+  width: 61px;
+  height: 61px;
   background-color: transparent;
-  border: 1px solid #fff;
+  border: 0;
   border-radius: 2px;
   padding: 4px;
   color: #fff;
+  font-size: 24px;
   
   i {
     color: #fff;
+    font-size: 24px;
   }
 }
 </style>

@@ -66,11 +66,12 @@ const goBack = () => router.back();
 }
 
 .subtitle-text {
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 600;
   color: #374151;
   margin: 0;
   flex: 1;
+  letter-spacing: -2px;
 }
 
 .subtitle-text.has-back-btn {

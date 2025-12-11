@@ -8,9 +8,9 @@
         </div>
         <!-- -------- 스와이프 체크리스트 -------- -->
         <!-- -------- 내 체크리스트 -------- -->
-        <section class="mb-6 overflow-x-hidden my-check">
+        <section class="mb-6 overflow-x-hidden my-check home-swipe-section">
         <h2 class="section-title">내 체크리스트
-          <a href="">더보기</a>
+          <a href="" class="more-link">더보기 <i class="bi bi-chevron-right"></i></a>
         </h2>
         <Swiper :slides-per-view="2.3" :space-between="8" :slides-offset-before="16" :slides-offset-after="16" class="pb-2">
           <SwiperSlide>

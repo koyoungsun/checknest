@@ -3,7 +3,7 @@
     <PageSubtitle />
 
     <!-- 검색 영역 -->
-    <section class="px-4 py-3 bg-white border-b sticky top-0 z-10">
+    <section class="px-4 py-3 bg-white border-b">
       <div class="flex items-center bg-gray-100 rounded-lg px-3 py-2">
         <i class="bi bi-search text-gray-500 mr-2"></i>
         <input
@@ -54,6 +54,7 @@
               :src="post.image"
               alt="post image"
               class="rounded-lg border w-full h-40 object-cover"
+              style="max-width: 100%;"
             />
           </div>
 
@@ -166,5 +167,9 @@ const goDetail = (id: string) => {
 <style scoped>
 .content-wrapper {
   padding: 16px;
+}
+
+.list-card img {
+  max-width: 100%;
 }
 </style>

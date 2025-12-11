@@ -23,6 +23,7 @@ body {
   background-color: var(--gray-100);
   text-align: left;
   font-family: var(--font-family-base);
+  letter-spacing: -0.7px;
 }
 
 * {
@@ -139,8 +140,19 @@ button{}
 // 나의 체크리스트 
 .my-check{background: linear-gradient(to bottom,
   var(--color-primary), var(--color-primary-light), #ffa366, #ffffff); padding:var(--space-md) 0; letter-spacing:-.7px;
+  margin-top: 50px; // 헤더 높이만큼 상단 마진 추가
     h2{ color:#fff; margin-bottom:var(--space-md); padding:0 var(--space-md);
       a{float:right; font-size:var(--font-xs); color:#eaeaea;}
+      .more-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        
+        i {
+          font-size: var(--font-xs);
+          color: #eaeaea;
+        }
+      }
     }
     .swiper-slide{background-color:#fff; height:160px; border-radius:var(--radius-sm); padding:var(--space-md); box-sizing:border-box; border-top:1px solid rgb(152, 143, 143); border-bottom:2px solid var(--color-primary); border-left:1px solid #eee; border-right:1px solid var(--color-primary-light);
         opacity: 0.6;
@@ -213,6 +225,9 @@ button{}
     top:0; 
     left:0; 
     right:0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     
     i {
       color: var(--color-primary);
@@ -220,6 +235,17 @@ button{}
   }
   
   i{color:var(--color-primary);}
+  .btn-r {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .btn-l {
+    display: flex;
+    align-items: center;
+  }
+  
   .btn-right{position:absolute; right:16px;
     button{float:right;}
   }
@@ -228,9 +254,7 @@ button{}
       span{position:absolute; right:0; top:0; font-size:12px;
       text-align:right; padding:5px; border-radius:50%; background-color:#f00; color:#fff;}
     }
-    .btn-l{position:absolute; top:10px; left:10px;}
-    .btn-r{position:absolute; top:10px; right:10px;}
-    .top-logo{color:var(--color-primary); position:absolute; font-weight:400; left:50%; top:10px; margin-left:-72px; letter-spacing:-1px;
+    .top-logo{color:var(--color-primary); position:absolute; font-weight:400; left:50%; top:50%; transform:translate(-50%, -50%); margin-left:0; letter-spacing:-1px; display:flex; align-items:center;
       span{font-weight:700; color:var(--color-primary);}
     }
     .sub-tit{color:var(--gray-900); width:100%; height:50px; line-height:50px; margin-top:50px; text-indent:50px; position:relative;
@@ -239,7 +263,22 @@ button{}
 }
 
 /* 버튼 공통 */
-.icon-btn {width: 40px; height: 40px; padding: 0; background: none; border: none;  font-size: 24px; color: #333;}
+.icon-btn {
+  width: 40px; 
+  height: 40px; 
+  padding: 0; 
+  background: none; 
+  border: none;  
+  font-size: 20px; 
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  i {
+    font-size: 20px;
+  }
+}
 
 /* 중앙 타이틀 */
 .title {position: absolute; left: 50%; transform: translateX(-50%); font-size: 18px; font-weight: 600; color: #fff; margin: 0; pointer-events: none;}
@@ -252,7 +291,7 @@ button{}
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0,0,0,0.7);
   z-index: 40;
 }
 .slide-nav {  position: fixed;  top: 0;  right: 0;  width: 260px;  height: 100%;  background: #fff;  transform: translateX(100%);  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);  z-index: 9999;  display: flex;  flex-direction: column;
@@ -322,7 +361,7 @@ button{}
 }
 
 
-.bottom-nav {position: fixed; bottom: 0; left: 0; right: 0; height: 58px; background: var(--color-primary);
+.bottom-nav {position: fixed; bottom: 0; left: 0; right: 0; height: 58px; background: linear-gradient(to bottom, #e55a2b, var(--color-primary, #ff6b35));
   border: 0; border-radius: 2px; display: flex; justify-content: space-around; align-items: center; z-index:1;}
 .nav-item { display: flex; flex-direction: column; align-items: center; font-size: var(--font-xs);  color: #fff;}
 .nav-item i { font-size: var(--font-xl); margin-bottom: 2px; color: #fff;}
@@ -469,30 +508,218 @@ button{}
   transform: translateY(100%);
 }
 
+// Fade 애니메이션 (중앙 모달용)
+.fade-enter-from {
+  opacity: 0;
+}
+
+.fade-enter-to {
+  opacity: 1;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-leave-from {
+  opacity: 1;
+}
+
+.fade-leave-to {
+  opacity: 0;
+}
+
+// 딤드 페이드 애니메이션
+.fade-dimd-enter-from {
+  opacity: 0;
+}
+
+.fade-dimd-enter-to {
+  opacity: 1;
+}
+
+.fade-dimd-enter-active,
+.fade-dimd-leave-active {
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-dimd-leave-from {
+  opacity: 1;
+}
+
+.fade-dimd-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-active .btm-sht-content,
+.fade-leave-active .btm-sht-content {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-enter-from .btm-sht-content {
+  transform: scale(0.95) translateY(-10px);
+  opacity: 0;
+}
+
+.fade-enter-to .btm-sht-content {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.fade-leave-from .btm-sht-content {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.fade-leave-to .btm-sht-content {
+  transform: scale(0.95) translateY(-10px);
+  opacity: 0;
+}
+
 // BottomSheet 컨테이너
 .btm-sht {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 9999;
-  max-width: 500px;
-  width: 100%;
   
-  // 버튼들 중앙 정렬
-  .sheet-item {
-    max-width: 400px;
-    margin: 0 auto;
+  .btm-sht-content {
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    
+    // 버튼들 중앙 정렬 (좌우만)
+    .sheet-item {
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
+}
+
+// BottomSheet 헤더
+.btm-sht-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+// BottomSheet 타이틀
+.btm-sht-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  margin: 0;
+  flex: 1;
 }
 
 // BottomSheet 아이템
 .sheet-item {
-  @apply w-full flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200;
+  @apply w-full flex items-center px-4;
   max-width: 400px; // 최대 너비 제한으로 센터 정렬 효과
+  width: 100%;
+  height: 50px;
+  background: linear-gradient(to bottom, #e55a2b, var(--color-primary, #ff6b35));
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border: none !important;
+  border-top: 1px solid white !important;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+  
+  i:first-child {
+    color: white;
+    margin-right: 4px;
+  }
+  
+  i {
+    color: white;
+  }
+  
+  .ml-auto {
+    margin-left: auto;
+  }
 }
 
 .btm-sheet-btn {
   @apply w-full;
+  width: 100%;
+  height: 50px;
+  background: linear-gradient(to bottom, #e55a2b, var(--color-primary, #ff6b35));
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border: none !important;
+  border-top: 1px solid white !important;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.btm-sht-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  
+  .sheet-item {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    width: 100%;
+    
+    &:first-child {
+      margin-top: 0;
+    }
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.btm-sht-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 20px;
+  padding: 0;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.2s ease;
+  
+  &:hover {
+    opacity: 0.7;
+  }
+  
+  i {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
 }
 
 // 배지 스타일
