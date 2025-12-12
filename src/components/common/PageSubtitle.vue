@@ -5,7 +5,7 @@
       class="back-btn"
       @click="goBack"
     >
-      <i class="bi bi-arrow-left"></i>
+      &lt;
     </button>
     <h2 class="subtitle-text" :class="{ 'has-back-btn': showBack }">{{ subtitle }}</h2>
   </div>
@@ -35,16 +35,29 @@ const goBack = () => router.back();
 .page-subtitle {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0;
   padding: 12px 16px;
-  background: white;
+  background: #FFE8D1;
   border-bottom: 1px solid #e5e7eb;
   position: sticky;
-  top: 50px; /* 헤더 높이만큼 아래로 */
-  z-index: 9; /* 헤더(z-index: 10)보다 낮게 */
+  top: 0; /* 헤더 바로 아래 */
+  z-index: 9; /* 헤더(z-index: 10)보다 낮게, 본문보다 높게 */
   min-height: 48px;
   width: 100%;
   box-sizing: border-box;
+  margin: 0; /* 마진 제거 */
+}
+
+/* 서브타이틀 다음 요소가 겹치지 않도록 처리 */
+/* 서브타이틀 높이: padding 12px * 2 + min-height 48px = 약 72px */
+/* sticky이므로 본문이 서브타이틀 아래에 자연스럽게 위치하도록 함 */
+/* 하지만 겹침을 방지하기 위해 서브타이틀 다음 요소에 최소 여백 보장 */
+.page-subtitle + section,
+.page-subtitle + main,
+.page-subtitle + div > section:first-child,
+.page-subtitle + div > div:first-child {
+  position: relative;
+  z-index: 1;
 }
 
 .back-btn {
@@ -56,7 +69,7 @@ const goBack = () => router.back();
   border: none;
   background: transparent;
   cursor: pointer;
-  color: var(--color-primary, #ff6b35);
+  color: #222;
   font-size: 18px;
   padding: 0;
 }
@@ -66,16 +79,16 @@ const goBack = () => router.back();
 }
 
 .subtitle-text {
-  font-size: 20px;
-  font-weight: 600;
-  color: #374151;
+  font-size: 18px;
+  font-weight: 500;
+  color: #222;
   margin: 0;
   flex: 1;
-  letter-spacing: -2px;
+  letter-spacing: -1px;
 }
 
 .subtitle-text.has-back-btn {
-  text-indent: 50px; /* 이전 버튼이 있을 때 통일된 들여쓰기 */
+  /* text-indent 제거됨 */
 }
 </style>
 

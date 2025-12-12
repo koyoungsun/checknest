@@ -3,15 +3,16 @@
     <PageSubtitle />
 
     <!-- 검색 영역 -->
-    <section class="px-4 py-3 bg-white border-b">
-      <div class="flex items-center bg-gray-100 rounded-lg px-3 py-2">
-        <i class="bi bi-search text-gray-500 mr-2"></i>
-        <input
-          type="text"
-          v-model="search"
-          placeholder="게시글 검색"
-          class="bg-transparent w-full outline-none text-sm"
-        />
+    <section class="px-4 pt-6 pb-2 bg-gray-50 border-b">
+      <div class="search-box" style="padding: 24px 16px 8px; width: 100%; box-sizing: border-box;">
+        <div class="search-box-wrapper" style="background: linear-gradient(to bottom right, #e55a2b, #ff6b35, #ffa366); padding: 3px; border-radius: 16px; width: 100%; display: block;">
+          <input
+            type="text"
+            v-model="search"
+            placeholder="게시글 검색"
+            style="width: 100%; height: 50px; font-size: 14px; border-radius: 13px; background: #fff !important; border: none; box-sizing: border-box; outline: none;"
+          />
+        </div>
       </div>
     </section>
 

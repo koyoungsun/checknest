@@ -166,7 +166,7 @@ const cancel = () => {
 
 .btn-primary {
   background: #2563eb;
-  color: white;
+  color: #fff;
   height: 50px;
   width: 50%;
   border-radius: 10px;

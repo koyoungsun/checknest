@@ -114,7 +114,7 @@
   
   .btn-primary {
     background: #2563eb;
-    color: white;
+    color: #fff;
     padding: 12px 0;
     border-radius: 8px;
     font-weight: 600;

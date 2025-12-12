@@ -124,7 +124,7 @@
   .primary-btn {
     width: 100%;
     background: #2563eb;
-    color: white;
+    color: #fff;
     padding: 12px 0;
     border-radius: 10px;
     font-weight: 600;
@@ -132,7 +132,7 @@
   
   .google-btn {
     width: 100%;
-    background: white;
+    background: #fff;
     border: 1px solid #d1d5db;
     padding: 12px 0;
     border-radius: 10px;

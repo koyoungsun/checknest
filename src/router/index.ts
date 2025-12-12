@@ -56,9 +56,12 @@ const routes = [
     meta: {
       title: "템플릿",
       subtitle: "템플릿 목록",
-      back: true,
+      back: true, // PageSubtitle의 이전 버튼 표시용
       menu: true,
       bottomNav: true,
+      showSearch: true, // 헤더에 검색 버튼 표시
+      showNotification: true,
+      hideHeaderBack: true, // 헤더의 이전 버튼 숨김
     },
   },
   {
@@ -174,8 +177,8 @@ const routes = [
     component: () => import("@/views/Mypage.vue"),
     meta: {
       title: "마이페이지",
-      subtitle: "내 정보",
-      back: false,
+      subtitle: "마이페이지",
+      back: true,
       menu: true,
       bottomNav: true,
       showSearch: true,

@@ -2,15 +2,16 @@
     <div class="bg-gray-50 pt-[100px] relative z-10">
   
       <!-- 검색창 -->
-      <section class="px-4 pt-3 relative z-20">
-        <div class="bg-white border border-gray-200 rounded-xl px-3 py-2 flex items-center shadow-sm">
-          <i class="bi bi-search text-gray-500 mr-2 text-sm"></i>
-          <input
-            type="text"
-            v-model="keyword"
-            placeholder="검색어를 입력하세요"
-            class="bg-transparent w-full outline-none text-sm placeholder:text-gray-400"
-          />
+      <section class="px-4 pt-6 pb-2 relative z-20">
+        <div class="search-box" style="padding: 24px 16px 8px; width: 100%; box-sizing: border-box;">
+          <div class="search-box-wrapper" style="background: linear-gradient(to bottom right, #e55a2b, #ff6b35, #ffa366); padding: 3px; border-radius: 16px; width: 100%; display: block;">
+            <input
+              type="text"
+              v-model="keyword"
+              placeholder="검색어를 입력하세요"
+              style="width: 100%; height: 50px; font-size: 14px; border-radius: 13px; background: #fff !important; border: none; box-sizing: border-box; outline: none;"
+            />
+          </div>
         </div>
       </section>
   

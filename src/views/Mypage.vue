@@ -4,14 +4,14 @@
     <PageSubtitle />
 
     <!-- 로딩 상태 -->
-    <div v-if="loading" class="flex-1 flex items-center justify-center text-gray-400 text-sm">
+    <div v-if="loading" class="flex-1 flex items-center justify-center text-gray-400 text-sm" style="margin-top: 0;">
       내 정보를 불러오는 중입니다...
     </div>
 
     <template v-else>
       <!-- ========== 프로필 영역 ========== -->
-      <section class="px-4 py-6 bg-white border-b">
-        <div class="flex flex-col items-center">
+      <section class="bg-white border-b">
+        <div class="content-wrapper flex flex-col items-center py-6">
 
           <!-- 프로필 이미지 -->
           <div
@@ -75,7 +75,7 @@
       <!--                        멤버 관리                          -->
       <!-- ========================================================= -->
 
-      <main class="px-4 py-4 space-y-4 flex-1">
+      <main class="content-wrapper space-y-4 flex-1 py-4">
 
         <!-- ===== 나의 멤버 ===== -->
         <div class="accordion-group">
@@ -141,7 +141,7 @@
       <!-- ========================================================= -->
       <!--                        탈퇴하기 버튼                      -->
       <!-- ========================================================= -->
-      <div class="px-4 py-6">
+      <div class="content-wrapper py-6">
         <button
           class="withdraw-btn w-full"
           @click="tryWithdraw"
@@ -371,8 +371,12 @@ const tryWithdraw = async () => {
 </script>
 
 <style scoped>
+.content-wrapper {
+  padding: 16px;
+}
+
 .accordion-group {
-  background: white;
+  background: #fff;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
@@ -420,7 +424,7 @@ const tryWithdraw = async () => {
 
 .unblock-btn {
   background: #ef4444;
-  color: white;
+  color: #fff;
   padding: 4px 8px;
   font-size: 0.75rem;
   border-radius: 6px;
@@ -428,7 +432,7 @@ const tryWithdraw = async () => {
 
 .withdraw-btn {
   background: #dc2626;
-  color: white;
+  color: #fff;
   font-size: 0.9rem;
   padding: 14px 0;
   border-radius: 12px;
