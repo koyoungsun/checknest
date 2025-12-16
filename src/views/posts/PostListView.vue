@@ -3,83 +3,146 @@
     <PageSubtitle />
 
     <!-- 검색 영역 -->
-    <section class="px-4 pt-6 pb-2 bg-gray-50 border-b">
-      <div class="search-box" style="padding: 24px 16px 8px; width: 100%; box-sizing: border-box;">
-        <div class="search-box-wrapper" style="background: linear-gradient(to bottom right, #e55a2b, #ff6b35, #ffa366); padding: 3px; border-radius: 16px; width: 100%; display: block;">
-          <input
-            type="text"
-            v-model="search"
-            placeholder="게시글 검색"
-            style="width: 100%; height: 50px; font-size: 14px; border-radius: 13px; background: #fff !important; border: none; box-sizing: border-box; outline: none;"
-          />
-        </div>
-      </div>
-    </section>
+    <SearchInput
+      v-model="search"
+      placeholder="게시글 검색"
+      label="게시글 검색"
+      input-id="post-search-input"
+      @search="handleSearch"
+    />
 
     <!-- 게시글 리스트 -->
     <main class="flex-1 overflow-y-auto content-wrapper">
-      <div v-if="filteredPosts.length > 0" class="space-y-0">
-        <div
-          v-for="post in filteredPosts"
-          :key="post.id"
-          @click="goDetail(post.id)"
-          class="list-card list-item"
-        >
-          <!-- 작성자 정보 -->
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-              <i class="bi bi-person-fill text-gray-600"></i>
+      <div v-if="search.trim()" style="padding: 8px 16px;">
+        <div v-if="filteredPosts.length > 0" class="space-y-0">
+          <div
+            v-for="post in filteredPosts"
+            :key="post.id"
+            @click="goDetail(post.id)"
+            class="list-card list-item"
+          >
+            <!-- 작성자 정보 -->
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="bi bi-person-fill text-gray-600"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900">{{ post.author }}</p>
+                <p class="text-xs text-gray-400 flex items-center gap-1">
+                  <i class="bi bi-clock text-[10px]"></i>
+                  {{ formatRelativeTime(post.createdAt) }}
+                </p>
+              </div>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-gray-900">{{ post.author }}</p>
-              <p class="text-xs text-gray-400 flex items-center gap-1">
-                <i class="bi bi-clock text-[10px]"></i>
-                {{ formatRelativeTime(post.createdAt) }}
-              </p>
+
+            <!-- 제목 -->
+            <h2 class="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+              {{ post.title }}
+            </h2>
+
+            <!-- 본문 미리보기 -->
+            <p class="text-sm text-gray-600 leading-relaxed line-clamp-2 mb-3">
+              {{ post.content }}
+            </p>
+
+            <!-- 이미지 미리보기 -->
+            <div v-if="post.image" class="mb-3">
+              <img
+                :src="post.image"
+                alt="post image"
+                class="rounded-lg border w-full h-40 object-cover"
+                style="max-width: 100%;"
+              />
             </div>
-          </div>
 
-          <!-- 제목 -->
-          <h2 class="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
-            {{ post.title }}
-          </h2>
-
-          <!-- 본문 미리보기 -->
-          <p class="text-sm text-gray-600 leading-relaxed line-clamp-2 mb-3">
-            {{ post.content }}
-          </p>
-
-          <!-- 이미지 미리보기 -->
-          <div v-if="post.image" class="mb-3">
-            <img
-              :src="post.image"
-              alt="post image"
-              class="rounded-lg border w-full h-40 object-cover"
-              style="max-width: 100%;"
-            />
-          </div>
-
-          <!-- 좋아요 / 댓글 수 -->
-          <div class="flex items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
-            <div class="flex items-center gap-1">
-              <i :class="post.liked ? 'bi bi-heart-fill text-red-500' : 'bi bi-heart'"></i>
-              <span>{{ post.likes }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <i class="bi bi-chat"></i>
-              <span>{{ post.comments.length }}</span>
-            </div>
-            <div class="ml-auto flex items-center gap-1">
-              <i class="bi bi-chevron-right text-gray-400"></i>
+            <!-- 좋아요 / 댓글 수 -->
+            <div class="flex items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
+              <div class="flex items-center gap-1">
+                <i :class="post.liked ? 'bi bi-heart-fill text-red-500' : 'bi bi-heart'"></i>
+                <span>{{ post.likes }}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <i class="bi bi-chat"></i>
+                <span>{{ post.comments.length }}</span>
+              </div>
+              <div class="ml-auto flex items-center gap-1">
+                <i class="bi bi-chevron-right text-gray-400"></i>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 게시글 없을 때 -->
-      <div v-else class="empty-state mt-20">
-        <i class="bi bi-inbox"></i>
-        <p>등록된 게시글이 없습니다.</p>
+        <!-- 게시글 없을 때 -->
+        <div v-else class="empty-state mt-20">
+          <i class="bi bi-inbox"></i>
+          <p>등록된 게시글이 없습니다.</p>
+        </div>
+      </div>
+      
+      <div v-else>
+        <div v-if="filteredPosts.length > 0" class="space-y-0">
+          <div
+            v-for="post in filteredPosts"
+            :key="post.id"
+            @click="goDetail(post.id)"
+            class="list-card list-item"
+          >
+            <!-- 작성자 정보 -->
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="bi bi-person-fill text-gray-600"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-900">{{ post.author }}</p>
+                <p class="text-xs text-gray-400 flex items-center gap-1">
+                  <i class="bi bi-clock text-[10px]"></i>
+                  {{ formatRelativeTime(post.createdAt) }}
+                </p>
+              </div>
+            </div>
+
+            <!-- 제목 -->
+            <h2 class="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+              {{ post.title }}
+            </h2>
+
+            <!-- 본문 미리보기 -->
+            <p class="text-sm text-gray-600 leading-relaxed line-clamp-2 mb-3">
+              {{ post.content }}
+            </p>
+
+            <!-- 이미지 미리보기 -->
+            <div v-if="post.image" class="mb-3">
+              <img
+                :src="post.image"
+                alt="post image"
+                class="rounded-lg border w-full h-40 object-cover"
+                style="max-width: 100%;"
+              />
+            </div>
+
+            <!-- 좋아요 / 댓글 수 -->
+            <div class="flex items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
+              <div class="flex items-center gap-1">
+                <i :class="post.liked ? 'bi bi-heart-fill text-red-500' : 'bi bi-heart'"></i>
+                <span>{{ post.likes }}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <i class="bi bi-chat"></i>
+                <span>{{ post.comments.length }}</span>
+              </div>
+              <div class="ml-auto flex items-center gap-1">
+                <i class="bi bi-chevron-right text-gray-400"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 게시글 없을 때 -->
+        <div v-else class="empty-state mt-20">
+          <i class="bi bi-inbox"></i>
+          <p>등록된 게시글이 없습니다.</p>
+        </div>
       </div>
     </main>
 
@@ -91,11 +154,18 @@ import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { formatRelativeTime } from "@/utils/dateUtils";
 import PageSubtitle from "@/components/common/PageSubtitle.vue";
+import SearchInput from "@/components/common/SearchInput.vue";
 
 const router = useRouter();
 
 // 검색
 const search = ref("");
+
+// 검색 실행
+const handleSearch = () => {
+  // 실시간 검색이 이미 computed로 작동하므로 포커스만 유지
+  document.getElementById('post-search-input')?.focus();
+};
 
 // 더미 게시글 데이터 (Firestore 연결 전)
 const posts = ref([

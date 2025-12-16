@@ -64,17 +64,39 @@ export const getItems = async (
  */
 export const createItem = async (input: ItemCreateInput): Promise<string> => {
   try {
+    // checklistId가 반드시 포함되도록 검증
+    if (!input.checklistId) {
+      throw new Error("checklistId는 필수입니다.");
+    }
+    
+    // groupId가 반드시 포함되도록 검증
+    if (!input.groupId || input.groupId.trim() === '') {
+      throw new Error("groupId는 필수입니다.");
+    }
+    
     const now = Date.now();
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      checklistId: input.checklistId,
+    
+    // payload에 checklistId가 반드시 포함되도록 명시적으로 구성
+    const payload: any = {
+      checklistId: input.checklistId, // 필수 필드
       name: input.name,
       isDone: input.isDone || false,
       assignedTo: input.assignedTo || null,
       order: input.order,
+      groupId: input.groupId, // 필수 필드
       createdAt: serverTimestamp(),
       createdAtNum: now, // 정렬을 위한 숫자 타임스탬프
       updatedAt: serverTimestamp(),
+    };
+    
+    console.log("[createItem] 항목 생성 payload:", {
+      checklistId: payload.checklistId,
+      name: payload.name,
+      order: payload.order,
+      groupId: payload.groupId,
     });
+    
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), payload);
 
     // 체크리스트 진행률 자동 업데이트
     const { updateChecklistProgress } = await import("./checklists");
@@ -112,6 +134,7 @@ export const updateItem = async (
     if (input.assignedTo !== undefined)
       updateData.assignedTo = input.assignedTo;
     if (input.order !== undefined) updateData.order = input.order;
+    if (input.groupId !== undefined) updateData.groupId = input.groupId;
 
     await updateDoc(docRef, updateData);
 

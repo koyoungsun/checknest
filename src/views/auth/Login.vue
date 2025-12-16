@@ -114,9 +114,10 @@
   .min-h-screen{padding:50px 16px;}
   .input {
     width: 100%;
-    border: 1px solid #d1d5db;
+    border: none;
+    border-bottom: 1px solid #999;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: 0;
     font-size: 14px;
     box-sizing:border-box;
   }

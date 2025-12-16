@@ -18,7 +18,7 @@ export const formatRelativeTime = (timestamp: number): string => {
 
 /**
  * 날짜가 지났는지 확인
- * @param dueDate - 마감일 문자열 (YYYY-MM-DD)
+ * @param dueDate - 종료일 문자열 (YYYY-MM-DD)
  * @returns 지났으면 true
  */
 export const isOverdue = (dueDate: string | null | undefined): boolean => {
@@ -30,4 +30,96 @@ export const isOverdue = (dueDate: string | null | undefined): boolean => {
   d.setHours(0, 0, 0, 0);
   return d < today;
 };
+
+/**
+ * 템플릿 날짜 포맷 (연도 제외, 다를 경우만 표시)
+ * @param date - Date 객체
+ * @returns 포맷된 날짜 문자열 (MM.DD 또는 YYYY.MM.DD)
+ */
+export const formatTemplateDate = (date: Date): string => {
+  const now = new Date();
+  const created = new Date(date);
+  const currentYear = now.getFullYear();
+  const createdYear = created.getFullYear();
+  
+  if (currentYear === createdYear) {
+    return `${String(created.getMonth() + 1).padStart(2, '0')}.${String(created.getDate()).padStart(2, '0')}`;
+  } else {
+    return `${createdYear}.${String(created.getMonth() + 1).padStart(2, '0')}.${String(created.getDate()).padStart(2, '0')}`;
+  }
+};
+
+/**
+ * 게시글 날짜 포맷 (연도 제외, 다를 경우만 표시)
+ * @param timestamp - 밀리초 타임스탬프
+ * @returns 포맷된 날짜 문자열 (MM.DD 또는 YYYY.MM.DD)
+ */
+export const formatPostDate = (timestamp: number): string => {
+  const now = new Date();
+  const created = new Date(timestamp);
+  const currentYear = now.getFullYear();
+  const createdYear = created.getFullYear();
+  
+  if (currentYear === createdYear) {
+    return `${String(created.getMonth() + 1).padStart(2, '0')}.${String(created.getDate()).padStart(2, '0')}`;
+  } else {
+    return `${createdYear}.${String(created.getMonth() + 1).padStart(2, '0')}.${String(created.getDate()).padStart(2, '0')}`;
+  }
+};
+
+/**
+ * D-Day 계산
+ * @param dueDate - 종료일 문자열 (YYYY-MM-DD)
+ * @returns D-Day 문자열 (예: "D-3", "D+1", "D-Day")
+ */
+export const calculateDDay = (dueDate: string | null | undefined): string => {
+  if (!dueDate) return "";
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  
+  const diffTime = due.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return "D-Day";
+  } else if (diffDays > 0) {
+    return `D-${diffDays}`;
+  } else {
+    return `D+${Math.abs(diffDays)}`;
+  }
+};
+
+/**
+ * D-Day 색상 계산
+ * @param dueDate - 종료일 문자열 (YYYY-MM-DD)
+ * @returns 색상 문자열
+ */
+export const getDDayColor = (dueDate: string | null | undefined): string => {
+  if (!dueDate) return "#666";
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  
+  const diffTime = due.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) {
+    // D+ (과거)
+    return "#999";
+  } else if (diffDays <= 3) {
+    // D-Day, D-1, D-2, D-3 (3일 이내)
+    return "#ff0000"; // 레드
+  } else {
+    // D-4 이상 (3일보다 클 때)
+    return "#0000ff"; // 블루
+  }
+};
+
 

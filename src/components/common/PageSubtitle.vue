@@ -4,8 +4,9 @@
       v-if="showBack"
       class="back-btn"
       @click="goBack"
+      aria-label="이전 페이지로 이동"
     >
-      &lt;
+      <span aria-hidden="true">&lt;</span>
     </button>
     <h2 class="subtitle-text" :class="{ 'has-back-btn': showBack }">{{ subtitle }}</h2>
   </div>
@@ -36,7 +37,7 @@ const goBack = () => router.back();
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 12px 16px;
+  padding: 6px 10px;
   background: #FFE8D1;
   border-bottom: 1px solid #e5e7eb;
   position: sticky;
@@ -69,7 +70,7 @@ const goBack = () => router.back();
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #222;
+  color: #8b3a1a;
   font-size: 18px;
   padding: 0;
 }
@@ -79,9 +80,9 @@ const goBack = () => router.back();
 }
 
 .subtitle-text {
-  font-size: 18px;
-  font-weight: 500;
-  color: #222;
+  font-size: 16px;
+  font-weight: 700;
+  color: #8b3a1a;
   margin: 0;
   flex: 1;
   letter-spacing: -1px;

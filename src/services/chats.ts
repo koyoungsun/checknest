@@ -66,19 +66,33 @@ export const getChats = async (
  */
 export const createChat = async (input: ChatCreateInput): Promise<string> => {
   try {
-    const now = Date.now();
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    // Firestore에 전달되는 payload 로그 출력
+    const payload = {
       checklistId: input.checklistId,
       userId: input.userId,
+      senderId: input.userId, // Firestore Rules에서 senderId 확인을 위해 추가
       message: input.message,
       system: input.system || false,
       createdAt: serverTimestamp(),
-      createdAtNum: now, // 정렬을 위한 숫자 타임스탬프
+      createdAtNum: Date.now(), // 정렬을 위한 숫자 타임스탬프
+    };
+    
+    console.log("[chats.ts] createChat() Firestore payload:", {
+      checklistId: payload.checklistId,
+      senderId: payload.senderId,
+      userId: payload.userId,
+      text: payload.message,
+      system: payload.system,
+      createdAtNum: payload.createdAtNum,
     });
+    
+    const now = Date.now();
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), payload);
 
+    console.log("[chats.ts] createChat() 성공 - 생성된 문서 ID:", docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error("채팅 생성 실패:", error);
+    console.error("[chats.ts] createChat() 실패:", error);
     throw error;
   }
 };
@@ -103,16 +117,5 @@ export const createSystemChat = async (
   }
 };
 
-/**
- * 채팅 삭제
- */
-export const deleteChat = async (id: string): Promise<void> => {
-  try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error("채팅 삭제 실패:", error);
-    throw error;
-  }
-};
+// 채팅 삭제 기능 제거: 채팅은 불변 로그로 동작
 

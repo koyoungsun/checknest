@@ -26,6 +26,35 @@ body {
   letter-spacing: -0.7px;
 }
 
+// 접근성: 스크린 리더 전용 텍스트
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+// 접근성: 포커스 표시
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #e55a2b !important;
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}
+
 * {
   font-family: 'Spoqa Han Sans Neo', 'sans-serif';
   margin: 0;
@@ -115,9 +144,12 @@ h1{color:var(--gray-900); font-size:var(--font-2xl);}
 h2{color:var(--gray-800); letter-spacing:-.1px; font-size:var(--font-lg); font-weight:700;}
 h3{color:var(--gray-600);}
 label, p,i,span{color:var(--gray-600);}
-button{}
+button{ color:#fff;
+  i{color:#fff;}
+  span{color:#fff;}
+}
 .check-card {
-  @apply min-w-[65%] max-w-[65%] p-4 rounded-xl border shadow-sm;
+  @apply min-w-[65%] max-w-[65%] p-4 rounded-xl border shadow-sm bg-white;
   flex-shrink: 0;
   height: 120px; /* 고정 높이로 통일 */
 }
@@ -129,9 +161,6 @@ button{}
 .card-sub {
   @apply text-sm text-gray-500;
 }
-.check-card {
-  @apply bg-white p-4 rounded-xl shadow-sm border;
-}
 .swiper{width:100vw;}
 
 // Main Area
@@ -140,7 +169,7 @@ button{}
 // 나의 체크리스트 
 .my-check{background: linear-gradient(to bottom,
   var(--color-primary), var(--color-primary-light), #ffa366, #e55a2b); padding:var(--space-md) 0; letter-spacing:-.7px;
-    h2.section-title{ color:#fff; margin-bottom:var(--space-md); padding:0 var(--space-md); display: flex; align-items: center; justify-content: space-between;
+    h2.section-title{ color:#fff !important; margin-bottom:var(--space-md); padding:0 var(--space-md); display: flex; align-items: center; justify-content: space-between;
       a{font-size:13px; color:#eaeaea;}
       .more-link {
         display: inline-flex;
@@ -158,8 +187,8 @@ button{}
     }
     .swiper-slide{background-color:#fff; height:160px; border-radius:var(--radius-sm); padding:var(--space-md); box-sizing:border-box; border-top:1px solid rgb(152, 143, 143); border-bottom:2px solid var(--color-primary); border-left:1px solid #eee; border-right:1px solid var(--color-primary-light);
         opacity: 0.6;
-        h3{font-size:16px;}
-        p{font-size:13px;}
+        h3{font-size:18px; color: #e55a2b;}
+        p{font-size:13px; margin-top: 8px; color: #666;}
         transition: background-color 0.3s ease, opacity 0.3s ease;
     }
     .swiper-slide-active{
@@ -168,8 +197,12 @@ button{}
         border-bottom: 2px solid #991b1b; // red-800
         opacity: 1;
         
-        h3, p {
-            color: #333;
+        h3 {
+            color: #e55a2b;
+        }
+        p {
+            color: #666;
+            margin-top: 8px;
         }
     }
 }
@@ -793,6 +826,7 @@ button{}
 
 // 섹션 타이틀
 .section-title {
+  color: #5c3a1a !important; /* 검은색에 가까운 주황 */
   @apply font-semibold text-gray-700 mb-2;
   font-size: 18px !important;
   letter-spacing: -1px;
@@ -827,44 +861,15 @@ button{}
       font-size: 13px;
     }
   }
+}
 
 // 검색박스
-.search-box-wrapper {
-  background: linear-gradient(to bottom right, #e55a2b, #ff6b35, #ffa366) !important;
-  padding: 3px !important;
-  border-radius: 16px !important;
-  width: 100%;
-  display: block;
-  
-  input[type="text"] {
-    width: 100%;
-    height: 50px;
-    font-size: 14px;
-  }
-  
-  input[type="text"]::placeholder {
-    color: #ffa366 !important;
-    opacity: 1 !important;
-  }
-  
-  input[type="text"]::-webkit-input-placeholder {
-    color: #ffa366 !important;
-    opacity: 1 !important;
-  }
-  
-  input[type="text"]::-moz-placeholder {
-    color: #ffa366 !important;
-    opacity: 1 !important;
-  }
-  
-  input[type="text"]:-ms-input-placeholder {
-    color: #ffa366 !important;
-    opacity: 1 !important;
-  }
-  
-  input[type="text"]::-ms-input-placeholder {
-    color: #ffa366 !important;
-    opacity: 1 !important;
-  }
-}
+// SearchInput 컴포넌트로 이동됨
+
+
+.checklist-detail-page{padding:16px;
+  header{display:flex; justify-content: space-between;}
+  .detail-body-cont{padding-top:24px;}
+  .chk-list-wrap{padding:8px 16px; background-color:#eee; border-bottom:1px solid #aaa; margin:4px 0;}
+
 }

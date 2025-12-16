@@ -31,8 +31,9 @@ const goHome = () => router.push("/");
           v-if="route.meta.back && route.meta.hideHeaderBack !== true"
           class="icon-btn mr-2"
           @click="goBack"
+          aria-label="이전 페이지로 이동"
         >
-          <i class="btn-back bi bi-arrow-left"></i>
+          <i class="btn-back bi bi-arrow-left" aria-hidden="true"></i>
         </button>
 
         <!-- 검색 버튼 (hideHeaderBack이 true이거나 back이 false일 때) -->
@@ -40,8 +41,9 @@ const goHome = () => router.push("/");
           v-else-if="route.meta.showSearch !== false"
           class="icon-btn mr-2"
           @click="router.push('/search')"
+          aria-label="검색"
         >
-          <i class="bi bi-search"></i>
+          <i class="bi bi-search" aria-hidden="true"></i>
         </button>
 
         <!-- 자리가 비었을 때 간격 유지 -->
@@ -52,6 +54,11 @@ const goHome = () => router.push("/");
       <h1 
         class="top-logo"
         @click="goHome"
+        role="button"
+        tabindex="0"
+        aria-label="홈으로 이동"
+        @keydown.enter="goHome"
+        @keydown.space.prevent="goHome"
       >
         CHECK<span>NEST</span>
       </h1>
@@ -63,12 +70,14 @@ const goHome = () => router.push("/");
           v-if="route.meta.showNotification !== false"
           class="icon-btn relative ico-alarm"
           @click="router.push('/notifications')"
+          :aria-label="unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개` : '알림'"
         >
-          <i class="bi bi-bell"></i>
+          <i class="bi bi-bell" aria-hidden="true"></i>
 
           <span
             v-if="unreadCount > 0"
             class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full"
+            aria-hidden="true"
           >
             {{ unreadCount }}
           </span>
@@ -79,8 +88,9 @@ const goHome = () => router.push("/");
           v-if="route.meta.menu !== false"
           class="icon-btn"
           @click="$emit('open-menu')"
+          aria-label="메뉴 열기"
         >
-          <i class="btn-menu bi bi-list"></i>
+          <i class="btn-menu bi bi-list" aria-hidden="true"></i>
         </button>
       </div>
     </div>

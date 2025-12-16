@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function: Check if user is member or owner of a checklist
+    function isChecklistMemberOrOwner(checklistId) {
+      let checklist = get(/databases/$(database)/documents/checklists/$(checklistId));
+      return request.auth != null && 
+             checklist != null &&
+             (checklist.data.ownerId == request.auth.uid || 
+              request.auth.uid in checklist.data.members);
+    }
+    
+    // Helper function: Check if user is member or owner of a checklist (alias)
+    function isChecklistMember(checklistId) {
+      return isChecklistMemberOrOwner(checklistId);
+    }
+    
+    // checklistChats 컬렉션 규칙
+    match /chats/{chatId} {
+      // Read: 인증된 사용자이고, 해당 chat의 checklistId에 대해 
+      //       현재 유저가 checklists.members에 포함되어 있거나 ownerId인 경우
+      allow read: if request.auth != null && 
+                     resource.data.checklistId is string &&
+                     isChecklistMemberOrOwner(resource.data.checklistId);
+      
+      // Write: 인증된 사용자이고, 자신의 userId로만 생성 가능
+      allow create: if request.auth != null && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.checklistId is string &&
+                       isChecklistMemberOrOwner(request.resource.data.checklistId);
+      
+      // Update/Delete: 작성자만 가능
+      allow update, delete: if request.auth != null && 
+                               request.auth.uid == resource.data.userId;
+    }
+    
+    // items 컬렉션 규칙
+    match /items/{itemId} {
+      // Read: 인증된 사용자이고, 해당 item의 checklistId에 대해 
+      //       현재 유저가 checklists.members에 포함되어 있거나 ownerId인 경우
+      allow read: if request.auth != null && 
+                     resource.data.checklistId is string &&
+                     isChecklistMember(resource.data.checklistId);
+      
+      // Create: 인증된 사용자이고, checklistId가 포함되어 있으며
+      //         해당 checklist의 멤버 또는 오너인 경우
+      allow create: if request.auth != null && 
+                       request.resource.data.checklistId is string &&
+                       isChecklistMember(request.resource.data.checklistId);
+      
+      // Update: 인증된 사용자이고, 해당 checklist의 멤버 또는 오너인 경우
+      allow update: if request.auth != null && 
+                       resource.data.checklistId is string &&
+                       isChecklistMember(resource.data.checklistId);
+      
+      // Delete: 인증된 사용자이고, 해당 checklist의 오너인 경우만 삭제 가능
+      allow delete: if request.auth != null && 
+                       resource.data.checklistId is string &&
+                       get(/databases/$(database)/documents/checklists/$(resource.data.checklistId)).data.ownerId == request.auth.uid;
+    }
+    
+    // 기타 컬렉션 규칙은 필요시 추가
+    // checklists 등에 대한 규칙도 여기에 추가할 수 있습니다.
+    
+  }
+}
+

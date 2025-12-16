@@ -14,6 +14,11 @@ export interface Chat {
    */
   createdAtNum?: number;
   system: boolean; // 안내 메시지인지 구분
+  /**
+   * 클라이언트 ID (optimistic update용)
+   * temp 메시지를 Firestore 메시지로 교체할 때 사용
+   */
+  clientId?: string;
 }
 
 export interface ChatCreateInput {

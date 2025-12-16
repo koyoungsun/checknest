@@ -43,7 +43,7 @@ src/
   ownerId: string;              // 소유자 UID
   title: string;                 // 제목
   description: string;           // 설명
-  dueDate: Timestamp | null;     // 마감일
+  dueDate: Timestamp | null;     // 종료일
   createdAt: Timestamp;          // 생성일
   updatedAt: Timestamp;          // 수정일
   isCompleted: boolean;          // 완료 여부
@@ -365,4 +365,5 @@ service cloud.firestore {
 - 타입 정의: `src/types/`
 - 서비스 함수: `src/services/`
 - Composable: `src/composables/`
+
 

@@ -2,18 +2,13 @@
   <div class="min-h-screen bg-gray-50 flex flex-col">
     <PageSubtitle />
     <!-- 검색 영역 -->
-    <section class="px-4 pt-6 pb-2 bg-gray-50 border-b">
-      <div class="search-box" style="padding: 24px 16px 8px; width: 100%; box-sizing: border-box;">
-        <div class="search-box-wrapper" style="background: linear-gradient(to bottom right, #e55a2b, #ff6b35, #ffa366); padding: 3px; border-radius: 16px; width: 100%; display: block;">
-          <input
-            type="text"
-            v-model="search"
-            placeholder="템플릿 검색"
-            style="width: 100%; height: 50px; font-size: 14px; border-radius: 13px; background: #fff !important; border: none; box-sizing: border-box; outline: none;"
-          />
-        </div>
-      </div>
-    </section>
+    <SearchInput
+      v-model="search"
+      placeholder="템플릿 검색"
+      label="템플릿 검색"
+      input-id="template-search-input"
+      @search="handleSearch"
+    />
 
     <!-- 카테고리 탭 -->
     <section class="overflow-x-auto bg-white border-b" style="padding: 24px 16px 8px 16px;">
@@ -37,75 +32,150 @@
 
     <!-- 템플릿 리스트 -->
     <main class="flex-1 overflow-y-auto content-wrapper">
-      <!-- 템플릿 리스트 -->
-      <div v-if="paginatedTemplates.length > 0" class="space-y-0 template-list-section">
-        <div
-          v-for="tpl in paginatedTemplates"
-          :key="tpl.id"
-          @click="goDetail(tpl.id)"
-          class="list-card list-item"
-        >
-          <!-- 제목 -->
-          <div class="mb-1">
-            <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
-              <strong>{{ tpl.category }}</strong> <span class="truncate" style="color: #111;">{{ tpl.title }}</span>
-              <em v-if="isNew(tpl.createdAt)" style="font-style: normal; color: var(--color-primary, #ff6b35); font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px;">new</em>
-            </h3>
-          </div>
+      <div v-if="search.trim()" style="padding: 8px 16px;">
+        <!-- 템플릿 리스트 -->
+        <div v-if="paginatedTemplates.length > 0" class="space-y-0 template-list-section">
+          <div
+            v-for="tpl in paginatedTemplates"
+            :key="tpl.id"
+            @click="goDetail(tpl.id)"
+            class="list-card list-item"
+          >
+            <!-- 제목 -->
+            <div class="mb-1">
+              <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
+                <strong>{{ tpl.category }}</strong> <span class="truncate" style="color: #111;">{{ tpl.title }}</span>
+                <em v-if="isNew(tpl.createdAt)" style="font-style: normal; color: var(--color-primary, #ff6b35); font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
+              </h3>
+            </div>
 
-          <!-- 작성자/날짜 -->
-          <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 6px; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
-            <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성자:</strong> {{ tpl.author }}</span>
-            <span style="flex-shrink: 0;">·</span>
-            <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatDate(tpl.createdAt) }}</span>
-          </div>
-          
-          <!-- 항목/추천수/사용자수 -->
-          <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
-            <span style="flex-shrink: 0; white-space: nowrap;"><strong>항목:</strong> {{ tpl.items }}개</span>
-            <span style="flex-shrink: 0;">·</span>
-            <span style="flex-shrink: 0; white-space: nowrap;"><strong>추천:</strong> {{ tpl.likes }}</span>
-            <span style="flex-shrink: 0;">·</span>
-            <span style="flex-shrink: 0; white-space: nowrap;"><strong>사용:</strong> {{ tpl.used }}회</span>
+            <!-- 작성자/날짜 -->
+            <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 6px; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성자:</strong> {{ tpl.author }}</span>
+              <span style="flex-shrink: 0;">·</span>
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatDate(tpl.createdAt) }}</span>
+            </div>
+            
+            <!-- 항목/추천수/사용자수 -->
+            <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>항목:</strong> {{ tpl.items }}개</span>
+              <span style="flex-shrink: 0;">·</span>
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>추천:</strong> {{ tpl.likes }}</span>
+              <span style="flex-shrink: 0;">·</span>
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>사용:</strong> {{ tpl.used }}회</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 템플릿 없을 때 -->
-      <div v-else class="empty-state">
-        <i class="bi bi-inbox"></i>
-        <p>검색 결과가 없습니다.</p>
-      </div>
+        <!-- 템플릿 없을 때 -->
+        <div v-else class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <p>검색 결과가 없습니다.</p>
+        </div>
 
-      <!-- 페이징 -->
-      <div v-if="totalPages > 1" class="pagination">
-        <button
-          @click="changePage(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="pagination-btn"
-          :class="{ 'pagination-btn--disabled': currentPage === 1 }"
-        >
-          <i class="bi bi-chevron-left"></i>
-        </button>
-        
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          @click="changePage(page)"
-          class="pagination-btn"
-          :class="{ 'pagination-btn--active': currentPage === page }"
-        >
-          {{ page }}
-        </button>
-        
-        <button
-          @click="changePage(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="pagination-btn"
-          :class="{ 'pagination-btn--disabled': currentPage === totalPages }"
-        >
-          <i class="bi bi-chevron-right"></i>
-        </button>
+        <!-- 페이징 -->
+        <div v-if="totalPages > 1" class="pagination">
+          <button
+            @click="changePage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="pagination-btn"
+            :class="{ 'pagination-btn--disabled': currentPage === 1 }"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="changePage(page)"
+            class="pagination-btn"
+            :class="{ 'pagination-btn--active': currentPage === page }"
+          >
+            {{ page }}
+          </button>
+          
+          <button
+            @click="changePage(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="pagination-btn"
+            :class="{ 'pagination-btn--disabled': currentPage === totalPages }"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div v-else>
+        <!-- 템플릿 리스트 -->
+        <div v-if="paginatedTemplates.length > 0" class="space-y-0 template-list-section">
+          <div
+            v-for="tpl in paginatedTemplates"
+            :key="tpl.id"
+            @click="goDetail(tpl.id)"
+            class="list-card list-item"
+          >
+            <!-- 제목 -->
+            <div class="mb-1">
+              <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
+                <strong>{{ tpl.category }}</strong> <span class="truncate" style="color: #111;">{{ tpl.title }}</span>
+                <em v-if="isNew(tpl.createdAt)" style="font-style: normal; color: var(--color-primary, #ff6b35); font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
+              </h3>
+            </div>
+
+            <!-- 작성자/날짜 -->
+            <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 6px; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성자:</strong> {{ tpl.author }}</span>
+              <span style="flex-shrink: 0;">·</span>
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatDate(tpl.createdAt) }}</span>
+            </div>
+            
+            <!-- 항목/추천수/사용자수 -->
+            <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>항목:</strong> {{ tpl.items }}개</span>
+              <span style="flex-shrink: 0;">·</span>
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>추천:</strong> {{ tpl.likes }}</span>
+              <span style="flex-shrink: 0;">·</span>
+              <span style="flex-shrink: 0; white-space: nowrap;"><strong>사용:</strong> {{ tpl.used }}회</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 템플릿 없을 때 -->
+        <div v-else class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <p>검색 결과가 없습니다.</p>
+        </div>
+
+        <!-- 페이징 -->
+        <div v-if="totalPages > 1" class="pagination">
+          <button
+            @click="changePage(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="pagination-btn"
+            :class="{ 'pagination-btn--disabled': currentPage === 1 }"
+          >
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="changePage(page)"
+            class="pagination-btn"
+            :class="{ 'pagination-btn--active': currentPage === page }"
+          >
+            {{ page }}
+          </button>
+          
+          <button
+            @click="changePage(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="pagination-btn"
+            :class="{ 'pagination-btn--disabled': currentPage === totalPages }"
+          >
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
       </div>
     </main>
   </div>
@@ -115,12 +185,19 @@
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import PageSubtitle from "@/components/common/PageSubtitle.vue";
+import SearchInput from "@/components/common/SearchInput.vue";
 import { formatRelativeTime } from "@/utils/dateUtils";
 
 const router = useRouter();
 
 // 검색
 const search = ref("");
+
+// 검색 실행
+const handleSearch = () => {
+  // 실시간 검색이 이미 computed로 작동하므로 포커스만 유지
+  document.getElementById('template-search-input')?.focus();
+};
 
 // 카테고리
 const categories = ["전체", "생활", "여행", "쇼핑", "업무", "기타"];

@@ -32,6 +32,12 @@ export interface SimpleMember {
  * 사용자 프로필 조회
  */
 export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
+  // userId 검증: undefined, null, 빈 문자열 체크
+  if (!uid || typeof uid !== 'string' || uid.trim() === '') {
+    console.error("[userService] getUserProfile: 유효하지 않은 userId:", uid);
+    return null;
+  }
+
   try {
     const userRef = doc(db, "users", uid);
     const snap = await getDoc(userRef);
@@ -126,4 +132,10 @@ export const deleteUserProfile = async (uid: string): Promise<void> => {
     throw error;
   }
 };
+
+
+
+
+
+
 

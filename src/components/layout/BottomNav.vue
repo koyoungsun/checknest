@@ -11,8 +11,8 @@
     </router-link>
 
     <!-- 중앙 플러스 버튼 -->
-    <button class="fab-button" @click="handleFabClick">
-      <i class="bi bi-plus-lg"></i>
+    <button class="fab-button" @click="handleFabClick" aria-label="새로 만들기">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i>
     </button>
 
     <router-link to="/templates" class="nav-item">
