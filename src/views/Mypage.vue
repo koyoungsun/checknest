@@ -217,20 +217,24 @@ onMounted(() => {
     email.value = user.email || "";
 
     try {
-      let userProfile = await getUserProfile(user.uid);
+      // 본인 프로필 조회 (currentUserId 전달하여 항상 조회 가능)
+      let userProfile = await getUserProfile(user.uid, user.uid);
 
       if (!userProfile) {
-        // 최초 로그인 유저라면 기본 프로필 생성
-        await createUserProfile(user);
-        userProfile = await getUserProfile(user.uid);
+        // 최초 로그인 유저라면 공개 프로필로 생성
+        await createUserProfile(user, true);
+        userProfile = await getUserProfile(user.uid, user.uid);
       }
 
       if (userProfile) {
-        nickname.value = userProfile.nickname;
-        bio.value = userProfile.bio;
-        profileImage.value = userProfile.photoURL;
-        myMembers.value = userProfile.myMembers;
-        blockedMembers.value = userProfile.blockedMembers;
+        // 공개 프로필만 저장되므로 displayName 사용
+        nickname.value = userProfile.displayName || "사용자";
+        profileImage.value = userProfile.photoURL || "";
+        // bio, myMembers, blockedMembers는 users 컬렉션에 저장하지 않음
+        // 향후 별도 컬렉션이나 암호화하여 관리 필요
+        bio.value = "";
+        myMembers.value = [];
+        blockedMembers.value = [];
       }
     } catch (err) {
       console.error("MyPage 사용자 정보 로딩 실패:", err);

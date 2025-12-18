@@ -4,10 +4,15 @@
 
     <!-- 알림 리스트 -->
     <main class="flex-1 overflow-y-auto space-y-0 content-wrapper">
+      <!-- 로딩 상태 -->
+      <div v-if="loading" class="text-center text-gray-400 mt-20">
+        <i class="bi bi-hourglass-split text-4xl animate-spin"></i>
+        <p class="mt-3 text-sm">알림을 불러오는 중...</p>
+      </div>
 
       <!-- 알림 없음 -->
       <div
-        v-if="notifications.length === 0"
+        v-else-if="notifications.length === 0"
         class="text-center text-gray-400 mt-20"
       >
         <i class="bi bi-bell-slash text-4xl"></i>
@@ -16,18 +21,31 @@
 
       <!-- 알림 반복 -->
       <div
-        v-for="n in notifications"
-        :key="n.id"
-        @click="openNotification(n)"
-        class="list-card list-item"
-        :class="!n.read ? 'bg-blue-50/30 border-blue-200' : ''"
+        v-else
+        v-for="notification in notifications"
+        :key="notification.id"
+        class="list-card list-item mb-2"
+        :class="!notification.read ? 'bg-blue-50/30 border-blue-200' : ''"
       >
         <div class="flex items-start gap-3">
           <!-- 왼쪽 아이콘 -->
           <div class="mt-0.5 flex-shrink-0">
-            <div class="w-10 h-10 rounded-lg flex items-center justify-center"
-                 :class="n.type === 'invite' ? 'bg-blue-50' : n.type === 'check' ? 'bg-green-50' : 'bg-gray-50'">
-              <i :class="iconClass(n.type)" class="text-lg"></i>
+            <div
+              class="w-10 h-10 rounded-lg flex items-center justify-center"
+              :class="
+                notification.type === 'invite'
+                  ? 'bg-blue-50'
+                  : 'bg-gray-50'
+              "
+            >
+              <i
+                :class="
+                  notification.type === 'invite'
+                    ? 'bi bi-person-plus text-blue-500'
+                    : 'bi bi-info-circle text-gray-600'
+                "
+                class="text-lg"
+              ></i>
             </div>
           </div>
 
@@ -35,87 +53,91 @@
           <div class="flex-1 min-w-0">
             <p
               class="text-sm leading-snug mb-1"
-              :class="n.read ? 'text-gray-600' : 'font-semibold text-gray-900'"
+              :class="
+                notification.read
+                  ? 'text-gray-600'
+                  : 'font-semibold text-gray-900'
+              "
             >
-              {{ n.message }}
+              {{ notification.title }}
+            </p>
+            <p
+              class="text-xs text-gray-500 mb-2"
+              :class="notification.read ? '' : 'font-medium'"
+            >
+              {{ notification.message }}
             </p>
 
             <div class="flex items-center gap-2">
               <p class="text-[11px] text-gray-400 flex items-center gap-1">
                 <i class="bi bi-clock text-[10px]"></i>
-                {{ formatRelativeTime(n.time) }}
+                {{ formatRelativeTime(toDate(notification.createdAt) || new Date()) }}
               </p>
+            </div>
+
+            <!-- 체크리스트 초대인 경우 "체크리스트로 이동" 버튼 -->
+            <div
+              v-if="notification.type === 'invite' && notification.checklistId"
+              class="mt-3"
+            >
+              <button
+                @click.stop="goToChecklist(notification.checklistId!)"
+                class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                체크리스트로 이동
+              </button>
             </div>
           </div>
 
           <!-- 읽지 않음 표시 -->
-          <div v-if="!n.read" class="flex-shrink-0 mt-1">
+          <div v-if="!notification.read" class="flex-shrink-0 mt-1">
             <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
           </div>
         </div>
       </div>
-
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { formatRelativeTime } from "@/utils/dateUtils";
+import { useAuth } from "@/composables/useAuth";
+import { useNotifications } from "@/composables/useNotifications";
+import { formatRelativeTime, toDate } from "@/utils/dateUtils";
 import PageSubtitle from "@/components/common/PageSubtitle.vue";
 
 const router = useRouter();
+const { currentUser } = useAuth();
+const {
+  notifications,
+  loading,
+  loadNotifications,
+  markAllRead,
+} = useNotifications();
 
-// 🔔 더미 알림 데이터 (나중에 Firestore 연결)
-const notifications = ref([
-  {
-    id: "n1",
-    type: "invite",
-    message: "아내님이 '장보기 리스트'에 초대했습니다.",
-    read: false,
-    time: Date.now() - 1000 * 60 * 5, // 5분 전
-    targetId: "checklist1",
-  },
-  {
-    id: "n2",
-    type: "check",
-    message: "'캠핑 준비 체크' 항목 2개가 완료되었습니다.",
-    read: true,
-    time: Date.now() - 1000 * 60 * 60, // 1시간 전
-    targetId: "checklist2",
-  },
-  {
-    id: "n3",
-    type: "system",
-    message: "템플릿 기능이 새로 업데이트되었습니다.",
-    read: true,
-    time: Date.now() - 1000 * 60 * 60 * 24, // 1일 전
-    targetId: null,
-  },
-]);
-
-// 🔘 알림 타입 아이콘
-const iconClass = (type: string) => {
-  switch (type) {
-    case "invite":
-      return "bi bi-person-plus text-blue-500";
-    case "check":
-      return "bi bi-check2-square text-green-600";
-    case "system":
-      return "bi bi-info-circle text-gray-600";
-    default:
-      return "bi bi-bell";
+// 알람 페이지 진입 시 알람 로드 및 읽음 처리
+onMounted(async () => {
+  if (currentUser.value) {
+    await loadNotifications();
+    // 페이지 진입 시 모든 unread 알람을 read로 변경
+    await markAllRead();
   }
-};
+});
 
-// 알림 클릭
-const openNotification = (n: any) => {
-  n.read = true;
-
-  if (n.targetId) {
-    router.push(`/checklists/${n.targetId}`);
+// currentUser 변경 시 알람 다시 로드
+watch(
+  () => currentUser.value,
+  async (user) => {
+    if (user) {
+      await loadNotifications();
+    }
   }
+);
+
+// 체크리스트로 이동
+const goToChecklist = (checklistId: string) => {
+  router.push(`/checklists/${checklistId}`);
 };
 </script>
 

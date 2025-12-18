@@ -20,18 +20,20 @@ export const useUserProfile = () => {
 
   /**
    * 프로필 로드
+   * 본인 프로필은 isPublicProfile 값과 관계없이 항상 조회 가능합니다.
    */
   const loadProfile = async (): Promise<void> => {
     if (!currentUser.value) return;
 
     loading.value = true;
     try {
-      let userProfile = await getUserProfile(currentUser.value.uid);
+      // 본인 프로필 조회 (currentUserId 전달하여 항상 조회 가능)
+      let userProfile = await getUserProfile(currentUser.value.uid, currentUser.value.uid);
 
       if (!userProfile) {
-        // 프로필이 없으면 생성
-        await createUserProfile(currentUser.value);
-        userProfile = await getUserProfile(currentUser.value.uid);
+        // 프로필이 없으면 공개 프로필로 생성
+        await createUserProfile(currentUser.value, true);
+        userProfile = await getUserProfile(currentUser.value.uid, currentUser.value.uid);
       }
 
       profile.value = userProfile;
@@ -44,8 +46,9 @@ export const useUserProfile = () => {
 
   /**
    * 프로필 업데이트
+   * 공개 프로필 필드(displayName, photoURL, isPublicProfile)만 업데이트 가능합니다.
    */
-  const updateProfile = async (updates: Partial<UserProfile>): Promise<void> => {
+  const updateProfile = async (updates: Partial<Pick<UserProfile, 'displayName' | 'photoURL' | 'isPublicProfile'>>): Promise<void> => {
     if (!currentUser.value || !requireAuth()) return;
 
     try {

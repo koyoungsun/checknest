@@ -1,47 +1,49 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pb-20">
+  <div class="min-h-screen bg-gray-50 pb-20 board-write-wrapper">
     <PageSubtitle />
-    <div class="px-4 py-4 content-wrapper">
+    <div class="px-4 py-4 content-wrapper board-write-body">
       <!-- 제목 -->
-      <section class="mb-4">
+      <section class="mb-4 board-write-title-section">
         <label class="block text-sm font-semibold mb-1">제목</label>
         <input
           v-model="title"
           type="text"
-          class="input"
+          class="input board-write-title-input"
           placeholder="제목을 입력하세요"
         />
       </section>
 
       <!-- 카테고리 -->
-      <section class="mb-4">
-        <label class="block text-sm font-semibold mb-1">카테고리 (선택)</label>
-        <select v-model="category" class="input">
-          <option value="">선택 안 함</option>
-          <option value="공지">공지</option>
-          <option value="팁">생활 팁</option>
-          <option value="템플릿 공유">템플릿 공유</option>
-          <option value="기타">기타</option>
+      <section class="mb-4 board-write-category-section">
+        <label class="block text-sm font-semibold mb-1">카테고리</label>
+        <select v-model="category" class="input board-write-category-select">
+          <option value="free">자유</option>
+          <option value="notice">공지</option>
+          <option value="review">후기</option>
         </select>
       </section>
 
       <!-- 내용 -->
-      <section class="mb-4">
+      <section class="mb-4 board-write-content-section">
         <label class="block text-sm font-semibold mb-1">내용</label>
         <textarea
           v-model="content"
           rows="8"
-          class="input"
+          class="input board-write-content-input"
           placeholder="공유하고 싶은 내용을 작성해주세요."
         ></textarea>
       </section>
 
       <!-- 버튼 -->
-      <section class="button-group">
-        <button class="btn-primary" @click="save">
-          게시글 등록
+      <section class="button-group board-write-actions">
+        <button 
+          class="btn-primary board-write-save-btn" 
+          @click="save"
+          :disabled="loading || !title.trim() || !content.trim()"
+        >
+          {{ loading ? "저장 중..." : "게시글 등록" }}
         </button>
-        <button class="btn-secondary" @click="cancel">
+        <button class="btn-secondary board-write-cancel-btn" @click="cancel" :disabled="loading">
           취소
         </button>
       </section>
@@ -52,15 +54,20 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useAuth } from "@/composables/useAuth";
+import { usePosts } from "@/composables/usePosts";
+import { getUserProfile } from "@/services/userService";
 import PageSubtitle from "@/components/common/PageSubtitle.vue";
 
 const router = useRouter();
+const { currentUser } = useAuth();
+const { addPost, loading } = usePosts();
 
 const title = ref("");
-const category = ref("");
+const category = ref<"notice" | "free" | "review">("free");
 const content = ref("");
 
-const save = () => {
+const save = async () => {
   if (!title.value.trim()) {
     alert("제목을 입력해주세요.");
     return;
@@ -70,14 +77,40 @@ const save = () => {
     return;
   }
 
-  console.log("NEW POST", {
-    title: title.value,
-    category: category.value,
-    content: content.value,
-  });
+  if (!currentUser.value) {
+    alert("로그인이 필요합니다.");
+    router.push("/login");
+    return;
+  }
 
-  alert("게시글이 등록된 것으로 가정합니다. (추후 Firestore 연동)");
-  router.push("/posts");
+  try {
+    // 작성자 이름을 users 컬렉션에서 가져오기 (본인 프로필이므로 항상 조회 가능)
+    let authorName = currentUser.value.displayName || "사용자";
+    try {
+      const profile = await getUserProfile(currentUser.value.uid, currentUser.value.uid);
+      if (profile && profile.displayName) {
+        authorName = profile.displayName;
+      }
+    } catch (err) {
+      // 프로필 조회 실패 시 Firebase Auth의 displayName 사용 (fallback)
+      console.warn("[PostWriteView] 프로필 조회 실패, Firebase Auth displayName 사용:", err);
+    }
+
+    // Firestore에 게시글 저장
+    await addPost({
+      category: category.value || "free",
+      title: title.value.trim(),
+      content: content.value.trim(),
+      ownerId: currentUser.value.uid,
+      authorName: authorName,
+    });
+
+    // 저장 성공 시 게시판 리스트 페이지로 이동
+    router.push("/posts");
+  } catch (error: any) {
+    console.error("[PostWriteView] 게시글 저장 실패:", error);
+    alert("게시글 저장에 실패했습니다. 다시 시도해주세요.");
+  }
 };
 
 const cancel = () => {

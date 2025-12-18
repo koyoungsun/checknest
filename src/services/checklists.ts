@@ -201,8 +201,14 @@ export const getChecklists = async (filters?: {
       constraints.push(where("isCompleted", "==", filters.isCompleted));
     }
 
-    // createdAtNum이 있으면 사용, 없으면 createdAt 사용 (하위 호환성)
-    // 새로 생성되는 문서는 createdAtNum을 포함하므로 createdAtNum 우선 사용
+    // createdAtNum 기준으로 정렬 (fallback 없음)
+    // Firestore Index 필요:
+    // - checklists: ownerId (ASC), isCompleted (ASC), createdAtNum (DESC)
+    // - checklists: members (array-contains), isCompleted (ASC), createdAtNum (DESC)
+    // - checklists: ownerId (ASC), createdAtNum (DESC)
+    // - checklists: members (array-contains), createdAtNum (DESC)
+    // 
+    // createdAtNum 필드가 없는 문서는 쿼리 결과에서 제외됩니다.
     constraints.push(orderBy("createdAtNum", "desc"));
 
     const q = query(collection(db, COLLECTION_NAME), ...constraints);
@@ -258,72 +264,27 @@ export const getChecklists = async (filters?: {
     
     return checklists;
   } catch (error: any) {
-    // createdAtNum 인덱스가 없을 경우 createdAt으로 폴백
+    // createdAtNum 인덱스가 없을 경우 fallback 전략 적용
+    // 수정: fallback 결과를 UI에 바로 반영하지 않고 명확한 에러를 throw하여
+    // 호출하는 쪽에서 loading 상태를 유지하도록 함
     if (
       error.code === "failed-precondition" &&
       error.message?.includes("index")
     ) {
-      console.warn(
-        "createdAtNum 인덱스가 없어 createdAt으로 폴백합니다. 인덱스를 생성해주세요."
+      console.error(
+        "[getChecklists] Firestore 인덱스 오류:",
+        error.message,
+        "\n필요한 인덱스를 Firebase Console에서 생성해주세요."
       );
-      try {
-        const constraints: any[] = [];
-
-        if (filters?.ownerId) {
-          constraints.push(where("ownerId", "==", filters.ownerId));
-        }
-        if (filters?.memberId) {
-          constraints.push(where("members", "array-contains", filters.memberId));
-        }
-        if (filters?.isCompleted !== undefined) {
-          constraints.push(where("isCompleted", "==", filters.isCompleted));
-        }
-        constraints.push(orderBy("createdAt", "desc"));
-
-        const q = query(collection(db, COLLECTION_NAME), ...constraints);
-        const querySnapshot = await getDocs(q);
-        // TODO: group 컬렉션 분리 시 migration 예정
-        return querySnapshot.docs.map((doc) => {
-          const firestoreData = doc.data();
-          return {
-            id: doc.id,
-            ownerId: firestoreData.ownerId,
-            title: firestoreData.title,
-            description: firestoreData.description || "",
-            // groups 배열: Firestore에 있으면 그대로 사용, 없으면 빈 배열 (재생성 금지)
-            groups: (firestoreData.groups && Array.isArray(firestoreData.groups) && firestoreData.groups.length > 0)
-              ? firestoreData.groups.map((g: any, index: number) => ({
-                  groupId: g.groupId,
-                  groupName: g.groupName,
-                  order: g.order !== undefined ? g.order : index
-                }))
-              : [],
-            dueDate: firestoreData.dueDate || null,
-            createdAt: firestoreData.createdAt,
-            createdAtNum: firestoreData.createdAtNum,
-            updatedAt: firestoreData.updatedAt,
-            isCompleted: firestoreData.isCompleted ?? false,
-            progress: firestoreData.progress ?? 0,
-            members: firestoreData.members || [],
-            pendingMembers: firestoreData.pendingMembers || undefined,
-            rolesEnabled: firestoreData.rolesEnabled ?? false,
-            templateId: firestoreData.templateId || null,
-            isDefault: firestoreData.isDefault ?? false,
-            hasChat: firestoreData.hasChat ?? undefined,
-            // chatEnabled: 기본 todo는 false, 그 외는 true (없으면 true로 간주)
-            chatEnabled: firestoreData.isDefault === true 
-              ? false 
-              : (firestoreData.chatEnabled !== undefined ? firestoreData.chatEnabled : true),
-            maxParticipants: firestoreData.maxParticipants ?? undefined,
-            status: firestoreData.status || undefined,
-            completedAt: firestoreData.completedAt || undefined,
-          } as Checklist;
-        });
-      } catch (fallbackError) {
-        console.error("체크리스트 목록 조회 실패 (폴백):", fallbackError);
-        throw fallbackError;
-      }
+      
+      // Fallback 제거: 인덱스가 없으면 에러를 그대로 throw하여
+      // 호출하는 쪽에서 loading 상태를 유지하고 사용자에게 명확한 메시지 표시
+      // 인덱스 생성 전까지는 데이터를 노출하지 않음
+      throw new Error(
+        "Firestore 인덱스가 필요합니다. Firebase Console에서 인덱스를 생성해주세요."
+      );
     }
+    
     console.error("체크리스트 목록 조회 실패:", error);
     throw error;
   }

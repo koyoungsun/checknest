@@ -1,16 +1,36 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
+import { onMounted, watch } from "vue";
+import { useAuth } from "@/composables/useAuth";
 import { useNotifications } from "@/composables/useNotifications";
 
 const route = useRoute();
 const router = useRouter();
-const { unreadCount } = useNotifications();
+const { currentUser } = useAuth();
+const { hasUnread, checkUnreadNotifications } = useNotifications();
 
 // 뒤로가기
 const goBack = () => router.back();
 
 // 홈 이동
 const goHome = () => router.push("/");
+
+// 읽지 않은 알람 존재 여부 확인
+onMounted(() => {
+  if (currentUser.value) {
+    checkUnreadNotifications();
+  }
+});
+
+// currentUser 변경 시 알람 확인
+watch(
+  () => currentUser.value,
+  (user) => {
+    if (user) {
+      checkUnreadNotifications();
+    }
+  }
+);
 </script>
 
 <template>
@@ -67,19 +87,20 @@ const goHome = () => router.push("/");
       <div class="btn-r">
         <!-- 알림 -->
         <button
-          v-if="route.meta.showNotification !== false"
+          v-if="route.meta.showNotification !== false && hasUnread"
           class="icon-btn relative ico-alarm"
           @click="router.push('/notifications')"
-          :aria-label="unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개` : '알림'"
+          aria-label="알림"
         >
           <i class="bi bi-bell" aria-hidden="true"></i>
 
+          <!-- 읽지 않은 알람이 있을 때만 "N" 배지 표시 -->
           <span
-            v-if="unreadCount > 0"
-            class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full"
+            v-if="hasUnread"
+            class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] h-4 flex items-center justify-center"
             aria-hidden="true"
           >
-            {{ unreadCount }}
+            N
           </span>
         </button>
 

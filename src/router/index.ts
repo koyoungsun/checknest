@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "@/views/Home.vue";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useAuth } from "@/composables/useAuth";
 
 const routes = [
   // ===========================
@@ -286,6 +286,48 @@ const routes = [
       bottomNav: false,
     },
   },
+
+  // ===========================
+  // 📋 게시판
+  // ===========================
+  {
+    path: "/boards",
+    name: "Boards",
+    component: () => import("@/views/boards/BoardListView.vue"),
+    meta: {
+      title: "게시판",
+      subtitle: "게시판 목록",
+      back: true,
+      menu: true,
+      bottomNav: true,
+      showSearch: true,
+      hideHeaderBack: true,
+    },
+  },
+  {
+    path: "/boards/create",
+    name: "BoardCreate",
+    component: () => import("@/views/boards/BoardCreateView.vue"),
+    meta: {
+      title: "게시글 작성",
+      subtitle: "새 게시글 작성",
+      back: true,
+      menu: false,
+      bottomNav: false,
+    },
+  },
+  {
+    path: "/boards/:id",
+    name: "BoardDetail",
+    component: () => import("@/views/boards/BoardDetailView.vue"),
+    meta: {
+      title: "게시글 상세",
+      subtitle: "게시글 보기",
+      back: true,
+      menu: false,
+      bottomNav: false,
+    },
+  },
 ];
 
 // ==================================
@@ -296,42 +338,38 @@ const router = createRouter({
   routes,
 });
 
-const auth = getAuth();
-
-// 인증 상태가 준비될 때까지 기다리는 Promise
-const waitForAuth = (): Promise<any> => {
-  return new Promise((resolve) => {
-    // 이미 인증 상태가 준비되어 있다면 즉시 반환
-    if (auth.currentUser !== null) {
-      resolve(auth.currentUser);
-      return;
-    }
-
-    // 인증 상태가 준비될 때까지 대기
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe(); // 한 번만 실행되도록 구독 해제
-      resolve(user);
-    });
-  });
-};
-
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to, from, next) => {
   // 공개 페이지는 바로 통과
   if (to.meta.public) {
     return next();
   }
 
-  // 인증 상태가 준비될 때까지 대기
-  const user = await waitForAuth();
+  // useAuth composable 사용
+  const { authReady, currentUser } = useAuth();
 
-  // 로그인 페이지로 가는 경우는 통과
-  if (to.path === "/login") {
-    return next();
+  // authReady가 false면 대기 (깜빡임/무한리다이렉트 방지)
+  if (!authReady.value) {
+    // authReady가 true가 될 때까지 Promise로 대기
+    await new Promise<void>((resolve) => {
+      const checkReady = () => {
+        if (authReady.value) {
+          resolve();
+        } else {
+          // 100ms마다 확인
+          setTimeout(checkReady, 100);
+        }
+      };
+      checkReady();
+    });
   }
 
-  // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
-  if (!user) {
-    return next("/login");
+  // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트 (원래 경로 저장)
+  if (!currentUser.value) {
+    const redirect = to.fullPath !== "/login" ? to.fullPath : undefined;
+    return next({
+      path: "/login",
+      query: redirect ? { redirect } : undefined,
+    });
   }
 
   // 인증된 사용자는 요청한 페이지로 이동

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col">
+  <div class="min-h-screen bg-gray-50 flex flex-col board-wrapper">
     <PageSubtitle />
 
     <!-- 검색 영역 -->
@@ -9,17 +9,18 @@
       label="게시글 검색"
       input-id="post-search-input"
       @search="handleSearch"
+      class="board-search"
     />
 
     <!-- 게시글 리스트 -->
-    <main class="flex-1 overflow-y-auto content-wrapper">
-      <div v-if="search.trim()" style="padding: 8px 16px;">
-        <div v-if="filteredPosts.length > 0" class="space-y-0">
+    <main class="flex-1 overflow-y-auto content-wrapper board-body">
+      <div v-if="search.trim()" style="padding: 8px 16px;" class="board-search-results">
+        <div v-if="filteredPosts.length > 0" class="space-y-0 board-list">
           <div
             v-for="post in filteredPosts"
             :key="post.id"
             @click="goDetail(post.id)"
-            class="list-card list-item"
+            class="list-card list-item board-item"
           >
             <!-- 작성자 정보 -->
             <div class="flex items-center gap-3 mb-3">
@@ -27,10 +28,10 @@
                 <i class="bi bi-person-fill text-gray-600"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-gray-900">{{ post.author }}</p>
+                <p class="text-sm font-semibold text-gray-900">{{ post.authorName }}</p>
                 <p class="text-xs text-gray-400 flex items-center gap-1">
                   <i class="bi bi-clock text-[10px]"></i>
-                  {{ formatRelativeTime(post.createdAt) }}
+                  {{ formatRelativeTime(toDate(post.createdAt) || new Date()) }}
                 </p>
               </div>
             </div>
@@ -45,25 +46,15 @@
               {{ post.content }}
             </p>
 
-            <!-- 이미지 미리보기 -->
-            <div v-if="post.image" class="mb-3">
-              <img
-                :src="post.image"
-                alt="post image"
-                class="rounded-lg border w-full h-40 object-cover"
-                style="max-width: 100%;"
-              />
-            </div>
-
             <!-- 좋아요 / 댓글 수 -->
             <div class="flex items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
               <div class="flex items-center gap-1">
-                <i :class="post.liked ? 'bi bi-heart-fill text-red-500' : 'bi bi-heart'"></i>
-                <span>{{ post.likes }}</span>
+                <i class="bi bi-heart"></i>
+                <span>{{ post.likeCount || 0 }}</span>
               </div>
               <div class="flex items-center gap-1">
                 <i class="bi bi-chat"></i>
-                <span>{{ post.comments.length }}</span>
+                <span>{{ post.commentCount || 0 }}</span>
               </div>
               <div class="ml-auto flex items-center gap-1">
                 <i class="bi bi-chevron-right text-gray-400"></i>
@@ -73,19 +64,19 @@
         </div>
 
         <!-- 게시글 없을 때 -->
-        <div v-else class="empty-state mt-20">
+        <div v-else class="empty-state mt-20 board-empty">
           <i class="bi bi-inbox"></i>
           <p>등록된 게시글이 없습니다.</p>
         </div>
       </div>
       
-      <div v-else>
-        <div v-if="filteredPosts.length > 0" class="space-y-0">
+      <div v-else class="board-content">
+        <div v-if="filteredPosts.length > 0" class="space-y-0 board-list">
           <div
             v-for="post in filteredPosts"
             :key="post.id"
             @click="goDetail(post.id)"
-            class="list-card list-item"
+            class="list-card list-item board-item"
           >
             <!-- 작성자 정보 -->
             <div class="flex items-center gap-3 mb-3">
@@ -93,10 +84,10 @@
                 <i class="bi bi-person-fill text-gray-600"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-gray-900">{{ post.author }}</p>
+                <p class="text-sm font-semibold text-gray-900">{{ post.authorName }}</p>
                 <p class="text-xs text-gray-400 flex items-center gap-1">
                   <i class="bi bi-clock text-[10px]"></i>
-                  {{ formatRelativeTime(post.createdAt) }}
+                  {{ formatRelativeTime(toDate(post.createdAt) || new Date()) }}
                 </p>
               </div>
             </div>
@@ -111,25 +102,15 @@
               {{ post.content }}
             </p>
 
-            <!-- 이미지 미리보기 -->
-            <div v-if="post.image" class="mb-3">
-              <img
-                :src="post.image"
-                alt="post image"
-                class="rounded-lg border w-full h-40 object-cover"
-                style="max-width: 100%;"
-              />
-            </div>
-
             <!-- 좋아요 / 댓글 수 -->
             <div class="flex items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
               <div class="flex items-center gap-1">
-                <i :class="post.liked ? 'bi bi-heart-fill text-red-500' : 'bi bi-heart'"></i>
-                <span>{{ post.likes }}</span>
+                <i class="bi bi-heart"></i>
+                <span>{{ post.likeCount || 0 }}</span>
               </div>
               <div class="flex items-center gap-1">
                 <i class="bi bi-chat"></i>
-                <span>{{ post.comments.length }}</span>
+                <span>{{ post.commentCount || 0 }}</span>
               </div>
               <div class="ml-auto flex items-center gap-1">
                 <i class="bi bi-chevron-right text-gray-400"></i>
@@ -139,7 +120,7 @@
         </div>
 
         <!-- 게시글 없을 때 -->
-        <div v-else class="empty-state mt-20">
+        <div v-else class="empty-state mt-20 board-empty">
           <i class="bi bi-inbox"></i>
           <p>등록된 게시글이 없습니다.</p>
         </div>
@@ -150,13 +131,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { formatRelativeTime } from "@/utils/dateUtils";
+import { formatRelativeTime, toDate } from "@/utils/dateUtils";
+import { usePosts } from "@/composables/usePosts";
 import PageSubtitle from "@/components/common/PageSubtitle.vue";
 import SearchInput from "@/components/common/SearchInput.vue";
+import type { Post } from "@/services/posts";
 
 const router = useRouter();
+
+// usePosts를 단일 데이터 소스로 사용
+const { posts, loadPosts, loading } = usePosts();
 
 // 검색
 const search = ref("");
@@ -167,72 +153,35 @@ const handleSearch = () => {
   document.getElementById('post-search-input')?.focus();
 };
 
-// 더미 게시글 데이터 (Firestore 연결 전)
-const posts = ref([
-  {
-    id: "p1",
-    author: "Aiden",
-    title: "캠핑갈 때 꼭 필요한 체크리스트 공유!",
-    content: "이번에 캠핑 다녀오면서 정리한 리스트입니다. 참고해서 사용하세요!",
-    image: "https://placehold.co/600x400",
-    createdAt: Date.now() - 1000 * 60 * 10,
-    likes: 12,
-    liked: false,
-    comments: [
-      {
-        id: "c1",
-        author: "Kate",
-        text: "와 너무 유용하네요!",
-        createdAt: Date.now() - 1000 * 60 * 5,
-      },
-    ],
-  },
-  {
-    id: "p2",
-    author: "Kate",
-    title: "속초 여행 체크리스트 공유",
-    content: "속초 여행을 다녀오면서 만든 체크리스트를 공유합니다.",
-    image: null,
-    createdAt: Date.now() - 1000 * 60 * 60 * 2,
-    likes: 8,
-    liked: true,
-    comments: [],
-  },
-  {
-    id: "p3",
-    author: "John",
-    title: "명절 준비 체크 포인트",
-    content: "명절 준비할 때 놓치기 쉬운 것들을 정리했습니다.",
-    image: null,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24,
-    likes: 15,
-    liked: false,
-    comments: [
-      {
-        id: "c2",
-        author: "Aiden",
-        text: "정말 도움되네요!",
-        createdAt: Date.now() - 1000 * 60 * 60 * 20,
-      },
-    ],
-  },
-]);
-
-// 필터링 처리
+// 필터링 처리: usePosts의 posts 상태를 기준으로 동작
 const filteredPosts = computed(() => {
+  const postsArray = Array.isArray(posts.value) ? posts.value : [];
+  
   if (!search.value.trim()) {
-    return posts.value;
+    return postsArray;
   }
-  return posts.value.filter((post) =>
-    post.title.toLowerCase().includes(search.value.toLowerCase()) ||
-    post.content.toLowerCase().includes(search.value.toLowerCase())
+  
+  const searchLower = search.value.toLowerCase();
+  return postsArray.filter((post) =>
+    post.title.toLowerCase().includes(searchLower) ||
+    post.content.toLowerCase().includes(searchLower)
   );
 });
 
-// 상세 이동
+// 상세 이동: posts 컬렉션 사용
 const goDetail = (id: string) => {
   router.push(`/posts/${id}`);
 };
+
+// 게시글 목록 로드 (public read, 로그인 여부와 무관)
+onMounted(async () => {
+  try {
+    await loadPosts();
+  } catch (err: any) {
+    // 에러 발생 시에도 기존 state는 유지 (빈 배열로 덮어쓰지 않음)
+    console.error("[PostListView] 게시글 목록 로드 실패:", err?.message || err);
+  }
+});
 </script>
 
 <style scoped>

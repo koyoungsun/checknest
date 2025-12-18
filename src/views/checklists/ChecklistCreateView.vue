@@ -1,45 +1,45 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col">
+  <div class="min-h-screen bg-gray-50 flex flex-col checklist-create-wrapper">
     <PageSubtitle />
     
     <!-- 진행 표시 -->
-    <div class="wizard-progress">
-      <div class="progress-steps">
+    <div class="wizard-progress checklist-create-progress">
+      <div class="progress-steps checklist-create-progress-steps">
         <div 
           v-for="step in 3" 
           :key="step"
-          :class="['progress-step', { active: currentStep >= step, completed: currentStep > step }]"
+          :class="['progress-step', { active: currentStep >= step, completed: currentStep > step }, 'checklist-create-progress-step']"
         >
           <div class="step-number">{{ step }}</div>
           <div class="step-label">{{ getStepLabel(step) }}</div>
         </div>
       </div>
-      <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: `${(currentStep / 3) * 100}%` }"></div>
+      <div class="progress-bar checklist-create-progress-bar">
+        <div class="progress-fill checklist-create-progress-fill" :style="{ width: `${(currentStep / 3) * 100}%` }"></div>
       </div>
     </div>
 
     <!-- 리스트 전체 -->
-    <main class="flex-1 overflow-y-auto pb-16 content-wrapper">
+    <main class="flex-1 overflow-y-auto pb-16 content-wrapper checklist-create-body">
       <!-- STEP 1: 기본 정보 -->
-      <div v-if="currentStep === 1" class="step-content">
-        <section class="mb-4">
+      <div v-if="currentStep === 1" class="step-content checklist-create-step checklist-create-step-1">
+        <section class="mb-4 checklist-create-title-section">
           <label class="block text-sm font-semibold mb-1">
             체크리스트 제목 <span class="text-red-500">*</span>
           </label>
           <input
             v-model="formData.title"
             type="text"
-            class="input"
+            class="input checklist-create-title-input"
             placeholder="예: 오늘의 할 일"
             @blur="validateStep1"
           />
           <p v-if="errors.title" class="text-red-500 text-xs mt-1">{{ errors.title }}</p>
         </section>
 
-        <section class="mb-4">
+        <section class="mb-4 checklist-create-category-section">
           <label class="block text-sm font-semibold mb-1">카테고리 (선택)</label>
-          <select v-model="formData.category" class="input">
+          <select v-model="formData.category" class="input checklist-create-category-select">
             <option value="">선택 안 함</option>
             <option value="생활">생활</option>
             <option value="여행">여행</option>

@@ -2,6 +2,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Helper function: Check if user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
     // Helper function: Check if user is member or owner of a checklist
     function isChecklistMemberOrOwner(checklistId) {
       let checklist = get(/databases/$(database)/documents/checklists/$(checklistId));
@@ -60,8 +65,182 @@ service cloud.firestore {
                        get(/databases/$(database)/documents/checklists/$(resource.data.checklistId)).data.ownerId == request.auth.uid;
     }
     
-    // 기타 컬렉션 규칙은 필요시 추가
-    // checklists 등에 대한 규칙도 여기에 추가할 수 있습니다.
+    /* ==========================
+       POSTS (게시글) - posts 컬렉션
+    ========================== */
+    match /posts/{postId} {
+      // 전체 공개 (로그인 없이 조회 가능)
+      allow read: if true;
+
+      // 로그인 유저만 게시글 생성 가능, ownerId === request.auth.uid
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid;
+
+      // ownerId === request.auth.uid 인 경우만 수정/삭제 가능
+      allow update, delete: if request.auth != null
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    /* ==========================
+       COMMENTS (댓글) - posts/{postId}/comments 서브컬렉션
+    ========================== */
+    match /posts/{postId}/comments/{commentId} {
+      // 로그인한 사용자만 댓글 조회 가능
+      // 게시글을 읽을 수 있는 사용자는 댓글도 읽을 수 있음
+      allow read: if request.auth != null;
+
+      // 로그인한 사용자만 댓글 작성 가능
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid;
+
+      // 댓글 수정은 V1에서 미지원 (삭제만 가능)
+      // allow update: if false;
+
+      // 작성자 본인만 삭제 가능
+      allow delete: if request.auth != null
+        && resource.data.ownerId == request.auth.uid;
+    }
+
+    /* ==========================
+       BOARDS COMMENTS
+    ========================== */
+    match /boards/{boardId}/comments/{commentId} {
+      // 댓글 읽기는 모두 허용
+      allow read: if true;
+
+      // 댓글 작성은 로그인 사용자만 가능
+      // 실제 코드에서는 authorId를 사용하므로 authorId로 검증
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+
+      // 댓글 수정 / 삭제는 작성자만 가능
+      // 실제 코드에서는 authorId를 사용하므로 authorId로 검증
+      allow update, delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid;
+    }
+    
+    // boardComments 컬렉션 규칙 (별도 컬렉션으로 관리하는 경우)
+    match /boardComments/{commentId} {
+      // Read: 누구나 댓글 조회 가능
+      allow read: if true;
+      
+      // Create: 인증된 사용자는 댓글 작성 가능
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+      
+      // Update: 작성자만 수정 가능
+      allow update: if isSignedIn()
+        && resource.data.authorId == request.auth.uid;
+      
+      // Delete: 작성자만 삭제 가능
+      allow delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid;
+    }
+    
+    // boardLikes 컬렉션 규칙
+    match /boardLikes/{likeId} {
+      // Read: 로그인한 사용자만 좋아요 조회 가능
+      allow read: if request.auth != null;
+      
+      // Create: 인증된 사용자는 좋아요 추가 가능
+      allow create: if request.auth != null && 
+                       request.resource.data.userId == request.auth.uid;
+      
+      // Delete: 본인이 추가한 좋아요만 삭제 가능 (로그인 필수)
+      allow delete: if request.auth != null && 
+                      request.auth.uid == resource.data.userId;
+    }
+    
+    // templates 컬렉션 규칙
+    match /templates/{templateId} {
+      // Read: 
+      // - 공개 템플릿(visibility === 'public')은 로그인 유무와 관계없이 허용
+      // - 내 템플릿(ownerId === auth.uid)은 로그인 사용자만 허용
+      allow read: if resource.data.visibility == "public" || 
+                     (request.auth != null && resource.data.ownerId == request.auth.uid);
+      
+      // Create: 로그인한 사용자만 템플릿 생성 가능
+      allow create: if request.auth != null && 
+                       request.resource.data.ownerId == request.auth.uid;
+      
+      // Update: 소유자만 수정 가능
+      allow update: if request.auth != null && 
+                      resource.data.ownerId == request.auth.uid;
+      
+      // Delete: 소유자만 삭제 가능
+      allow delete: if request.auth != null && 
+                      resource.data.ownerId == request.auth.uid;
+    }
+    
+    // checklists 컬렉션 규칙
+    match /checklists/{checklistId} {
+      // Read: 
+      // - ownerId === auth.uid 인 경우 허용
+      // - members 배열에 auth.uid가 포함된 경우 허용
+      allow read: if request.auth != null && 
+                     (resource.data.ownerId == request.auth.uid || 
+                      request.auth.uid in resource.data.members);
+      
+      // Create: 로그인한 사용자만 체크리스트 생성 가능
+      allow create: if request.auth != null && 
+                       request.resource.data.ownerId == request.auth.uid;
+      
+      // Update: 소유자 또는 멤버만 수정 가능
+      allow update: if request.auth != null && 
+                      (resource.data.ownerId == request.auth.uid || 
+                       request.auth.uid in resource.data.members);
+      
+      // Delete: 소유자만 삭제 가능
+      allow delete: if request.auth != null && 
+                      resource.data.ownerId == request.auth.uid;
+    }
+    
+    // notifications 컬렉션 규칙
+    match /notifications/{notificationId} {
+      // Read: 자신의 알람만 조회 가능
+      allow read: if request.auth != null && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Create: 로그인한 사용자만 알람 생성 가능
+      allow create: if request.auth != null;
+      
+      // Update: 자신의 알람만 수정 가능 (읽음 처리 등)
+      allow update: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+      
+      // Delete: 자신의 알람만 삭제 가능
+      allow delete: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+    }
+    
+    /* ==========================
+       USERS (사용자 프로필) - users 컬렉션
+       공개 프로필: displayName, photoURL, isPublicProfile 필드만 공개
+       isPublicProfile === true인 경우에만 read 허용
+    ========================== */
+    match /users/{userId} {
+      // Read: isPublicProfile === true인 경우에만 조회 가능 (공개 프로필)
+      // 본인 프로필은 항상 조회 가능 (isPublicProfile 값과 관계없이)
+      allow read: if resource.data.isPublicProfile == true ||
+                     (request.auth != null && request.auth.uid == userId);
+      
+      // Create: 로그인한 사용자만 자신의 프로필 생성 가능
+      // isPublicProfile 필드는 필수이며, 기본값은 true
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasAll(['displayName', 'isPublicProfile'])
+        && request.resource.data.isPublicProfile is bool;
+      
+      // Update: 본인만 프로필 수정 가능
+      // 공개 필드(displayName, photoURL, isPublicProfile, updatedAt)만 업데이트 가능
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL', 'isPublicProfile', 'updatedAt']);
+      
+      // Delete: 본인만 프로필 삭제 가능
+      allow delete: if request.auth != null
+        && request.auth.uid == userId;
+    }
     
   }
 }

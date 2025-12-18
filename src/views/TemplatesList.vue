@@ -1,22 +1,31 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col">
+  <div class="min-h-screen bg-gray-50 flex flex-col template-wrapper">
     <PageSubtitle />
-    <!-- 검색 영역 -->
-    <SearchInput
-      v-model="search"
-      placeholder="템플릿 검색"
-      label="템플릿 검색"
-      input-id="template-search-input"
-      @search="handleSearch"
-    />
+    
+    <!-- 정렬 옵션 -->
+    <section class="bg-white border-b px-4 py-3 template-sort-section">
+      <div class="flex items-center gap-2 template-sort-body">
+        <span class="text-sm font-medium text-gray-700">정렬:</span>
+        <select
+          v-model="sortOption"
+          @change="handleSortChange"
+          class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 template-sort-select"
+        >
+          <option value="createdAt_desc">최신순</option>
+          <option value="createdAt_asc">오래된순</option>
+          <option value="title_asc">제목순</option>
+          <option value="category_asc">카테고리순</option>
+        </select>
+      </div>
+    </section>
 
     <!-- 카테고리 탭 -->
-    <section class="overflow-x-auto bg-white border-b" style="padding: 24px 16px 8px 16px;">
-      <div class="flex" style="gap: 2px;">
+    <section class="overflow-x-auto bg-white border-b template-category-section" style="padding: 16px;">
+      <div class="flex template-category-body" style="gap: 2px;">
         <label
           v-for="cat in categories"
           :key="cat"
-          class="radio-tab"
+          class="radio-tab template-category-tab"
           :class="{ 'radio-tab--active': selectedCategory === cat }"
         >
           <input
@@ -24,6 +33,7 @@
             :value="cat"
             v-model="selectedCategory"
             class="radio-input"
+            @change="handleCategoryChange"
           />
           <span class="radio-label">{{ cat }}</span>
         </label>
@@ -31,372 +41,473 @@
     </section>
 
     <!-- 템플릿 리스트 -->
-    <main class="flex-1 overflow-y-auto content-wrapper">
-      <div v-if="search.trim()" style="padding: 8px 16px;">
-        <!-- 템플릿 리스트 -->
-        <div v-if="paginatedTemplates.length > 0" class="space-y-0 template-list-section">
-          <div
-            v-for="tpl in paginatedTemplates"
-            :key="tpl.id"
-            @click="goDetail(tpl.id)"
-            class="list-card list-item"
-          >
-            <!-- 제목 -->
-            <div class="mb-1">
-              <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
-                <strong>{{ tpl.category }}</strong> <span class="truncate" style="color: #111;">{{ tpl.title }}</span>
-                <em v-if="isNew(tpl.createdAt)" style="font-style: normal; color: var(--color-primary, #ff6b35); font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
-              </h3>
-            </div>
-
-            <!-- 작성자/날짜 -->
-            <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 6px; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성자:</strong> {{ tpl.author }}</span>
-              <span style="flex-shrink: 0;">·</span>
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatDate(tpl.createdAt) }}</span>
-            </div>
-            
-            <!-- 항목/추천수/사용자수 -->
-            <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>항목:</strong> {{ tpl.items }}개</span>
-              <span style="flex-shrink: 0;">·</span>
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>추천:</strong> {{ tpl.likes }}</span>
-              <span style="flex-shrink: 0;">·</span>
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>사용:</strong> {{ tpl.used }}회</span>
-            </div>
-          </div>
+    <main class="flex-1 overflow-y-auto content-wrapper template-body">
+      <!-- 로딩 상태 -->
+      <div v-if="isLoading" class="flex items-center justify-center py-12 template-loading">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p class="text-gray-600">로딩 중...</p>
         </div>
+      </div>
 
-        <!-- 템플릿 없을 때 -->
-        <div v-else class="empty-state">
-          <i class="bi bi-inbox"></i>
-          <p>검색 결과가 없습니다.</p>
-        </div>
-
-        <!-- 페이징 -->
-        <div v-if="totalPages > 1" class="pagination">
+      <!-- 에러 상태 -->
+      <div v-else-if="hasError" class="flex items-center justify-center py-12 template-error">
+        <div class="text-center">
+          <p class="text-red-600 mb-4">{{ errorPublic?.message || errorMy?.message || '오류가 발생했습니다.' }}</p>
           <button
-            @click="changePage(currentPage - 1)"
-            :disabled="currentPage === 1"
-            class="pagination-btn"
-            :class="{ 'pagination-btn--disabled': currentPage === 1 }"
+            @click="loadTemplatesData"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 template-error-retry"
           >
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          
-          <button
-            v-for="page in totalPages"
-            :key="page"
-            @click="changePage(page)"
-            class="pagination-btn"
-            :class="{ 'pagination-btn--active': currentPage === page }"
-          >
-            {{ page }}
-          </button>
-          
-          <button
-            @click="changePage(currentPage + 1)"
-            :disabled="currentPage === totalPages"
-            class="pagination-btn"
-            :class="{ 'pagination-btn--disabled': currentPage === totalPages }"
-          >
-            <i class="bi bi-chevron-right"></i>
+            다시 시도
           </button>
         </div>
       </div>
-      
-      <div v-else>
-        <!-- 템플릿 리스트 -->
-        <div v-if="paginatedTemplates.length > 0" class="space-y-0 template-list-section">
-          <div
-            v-for="tpl in paginatedTemplates"
-            :key="tpl.id"
-            @click="goDetail(tpl.id)"
-            class="list-card list-item"
-          >
-            <!-- 제목 -->
-            <div class="mb-1">
-              <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
-                <strong>{{ tpl.category }}</strong> <span class="truncate" style="color: #111;">{{ tpl.title }}</span>
-                <em v-if="isNew(tpl.createdAt)" style="font-style: normal; color: var(--color-primary, #ff6b35); font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
-              </h3>
-            </div>
 
-            <!-- 작성자/날짜 -->
-            <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 6px; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성자:</strong> {{ tpl.author }}</span>
-              <span style="flex-shrink: 0;">·</span>
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatDate(tpl.createdAt) }}</span>
-            </div>
-            
-            <!-- 항목/추천수/사용자수 -->
-            <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>항목:</strong> {{ tpl.items }}개</span>
-              <span style="flex-shrink: 0;">·</span>
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>추천:</strong> {{ tpl.likes }}</span>
-              <span style="flex-shrink: 0;">·</span>
-              <span style="flex-shrink: 0; white-space: nowrap;"><strong>사용:</strong> {{ tpl.used }}회</span>
+      <!-- 템플릿 리스트 -->
+      <div v-else class="space-y-6 template-content">
+        <!-- 내 템플릿 섹션 -->
+        <section v-if="myTemplates.length > 0" class="template-my-section">
+          <h2 class="text-lg font-bold text-gray-800 mb-3 px-2 template-my-header">내 템플릿</h2>
+          <div class="space-y-0 template-list-section template-my-list">
+            <div
+              v-for="(tpl, index) in myTemplates"
+              :key="`my-${tpl.id}`"
+              @click="goDetail(tpl.id)"
+              class="list-card list-item cursor-pointer hover:bg-gray-50 transition-colors template-my-item"
+            >
+              <div class="px-4 py-3">
+                <!-- 넘버 및 제목 -->
+                <div class="flex items-start gap-3 mb-2">
+                  <span class="text-lg font-bold text-blue-600 flex-shrink-0" style="min-width: 24px;">
+                    {{ index + 1 }}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-base text-gray-800 truncate flex items-center gap-1">
+                      {{ tpl.title }}
+                      <span v-if="tpl.visibility === 'public'" class="text-xs text-blue-600 flex-shrink-0" title="공유 템플릿">
+                        🌍
+                      </span>
+                      <span v-else-if="tpl.visibility === 'private'" class="text-xs text-gray-500 flex-shrink-0" title="개인 템플릿">
+                        🔒
+                      </span>
+                      <em v-if="isNewTemplate(tpl.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
+                    </h3>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs px-2 py-0.5 bg-orange-500 text-white rounded">
+                        {{ tpl.category }}
+                      </span>
+                      <span class="text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded">
+                        {{ tpl.visibility === 'public' ? '공개' : '비공개' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 작성자 및 작성일 -->
+                <div class="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                  <span v-if="getAuthorName(tpl.ownerId)">
+                    작성자: {{ getAuthorName(tpl.ownerId) }}
+                  </span>
+                  <span v-if="getAuthorName(tpl.ownerId) && tpl.createdAt">·</span>
+                  <span v-if="tpl.createdAt">
+                    작성일: {{ formatCreatedAt(tpl.createdAt) }}
+                  </span>
+                </div>
+
+                <!-- 통계 정보 -->
+                <div class="flex items-center gap-4 text-sm text-gray-600 mt-2">
+                  <span class="flex items-center gap-1">
+                    <i class="bi bi-heart"></i>
+                    {{ tpl.likeCount }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <i class="bi bi-check-circle"></i>
+                    {{ tpl.usedCount }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <i class="bi bi-list-ul"></i>
+                    {{ tpl.items?.length || 0 }}개 항목
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        <!-- 공개 템플릿 섹션 -->
+        <section v-if="publicTemplates.length > 0" class="template-public-section">
+          <h2 class="text-lg font-bold text-gray-800 mb-3 px-2 template-public-header">공개 템플릿</h2>
+          <div class="space-y-0 template-list-section template-public-list">
+            <div
+              v-for="(tpl, index) in publicTemplates"
+              :key="`public-${tpl.id}`"
+              @click="goDetail(tpl.id)"
+              class="list-card list-item cursor-pointer hover:bg-gray-50 transition-colors template-public-item"
+            >
+              <div class="px-4 py-3">
+                <!-- 넘버 및 제목 -->
+                <div class="flex items-start gap-3 mb-2">
+                  <span class="text-lg font-bold text-blue-600 flex-shrink-0" style="min-width: 24px;">
+                    {{ index + 1 }}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-base text-gray-800 truncate flex items-center gap-1">
+                      {{ tpl.title }}
+                      <em v-if="isNewTemplate(tpl.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
+                    </h3>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs px-2 py-0.5 bg-orange-500 text-white rounded">
+                        {{ tpl.category }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 작성자 및 작성일 -->
+                <div class="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                  <span v-if="getAuthorName(tpl.ownerId)">
+                    작성자: {{ getAuthorName(tpl.ownerId) }}
+                  </span>
+                  <span v-if="getAuthorName(tpl.ownerId) && tpl.createdAt">·</span>
+                  <span v-if="tpl.createdAt">
+                    작성일: {{ formatCreatedAt(tpl.createdAt) }}
+                  </span>
+                </div>
+
+                <!-- 통계 정보 -->
+                <div class="flex items-center gap-4 text-sm text-gray-600 mt-2">
+                  <span class="flex items-center gap-1">
+                    <i class="bi bi-heart"></i>
+                    {{ tpl.likeCount }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <i class="bi bi-check-circle"></i>
+                    {{ tpl.usedCount }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <i class="bi bi-list-ul"></i>
+                    {{ tpl.items?.length || 0 }}개 항목
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <!-- 템플릿 없을 때 -->
-        <div v-else class="empty-state">
-          <i class="bi bi-inbox"></i>
-          <p>검색 결과가 없습니다.</p>
-        </div>
-
-        <!-- 페이징 -->
-        <div v-if="totalPages > 1" class="pagination">
-          <button
-            @click="changePage(currentPage - 1)"
-            :disabled="currentPage === 1"
-            class="pagination-btn"
-            :class="{ 'pagination-btn--disabled': currentPage === 1 }"
-          >
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          
-          <button
-            v-for="page in totalPages"
-            :key="page"
-            @click="changePage(page)"
-            class="pagination-btn"
-            :class="{ 'pagination-btn--active': currentPage === page }"
-          >
-            {{ page }}
-          </button>
-          
-          <button
-            @click="changePage(currentPage + 1)"
-            :disabled="currentPage === totalPages"
-            class="pagination-btn"
-            :class="{ 'pagination-btn--disabled': currentPage === totalPages }"
-          >
-            <i class="bi bi-chevron-right"></i>
-          </button>
+        <div v-if="myTemplates.length === 0 && publicTemplates.length === 0" class="empty-state template-empty">
+          <i class="bi bi-inbox text-4xl text-gray-400 mb-4"></i>
+          <p class="text-gray-600">템플릿이 없습니다.</p>
         </div>
       </div>
     </main>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch } from "vue";
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
+import { getTemplates } from "@/services/templates";
+import { useAuth } from "@/composables/useAuth";
+import { getUserProfile } from "@/services/userService";
+import { formatDateYYYYMMDD, toDate } from "@/utils/dateUtils";
+import { isNewTemplate } from "@/utils/templateUtils";
+import type { TemplateSortOption, Template } from "@/types/template";
+import type { Timestamp } from "firebase/firestore";
 import PageSubtitle from "@/components/common/PageSubtitle.vue";
-import SearchInput from "@/components/common/SearchInput.vue";
-import { formatRelativeTime } from "@/utils/dateUtils";
 
 const router = useRouter();
+const { currentUser } = useAuth();
 
-// 검색
-const search = ref("");
+// 작성자 이름 캐시
+const authorNameCache = ref<Map<string, string>>(new Map());
 
-// 검색 실행
-const handleSearch = () => {
-  // 실시간 검색이 이미 computed로 작동하므로 포커스만 유지
-  document.getElementById('template-search-input')?.focus();
-};
+// 공개 템플릿과 내 템플릿을 분리하여 관리
+const publicTemplatesList = ref<Template[]>([]);
+const myTemplatesList = ref<Template[]>([]);
+const loadingPublic = ref(false);
+const loadingMy = ref(false);
+const errorPublic = ref<Error | null>(null);
+const errorMy = ref<Error | null>(null);
 
 // 카테고리
 const categories = ["전체", "생활", "여행", "쇼핑", "업무", "기타"];
 const selectedCategory = ref("전체");
 
-// 임시 템플릿 데이터 (Firestore 연동 전)
-const templates = ref([
-  {
-    id: "tpl1",
-    title: "여행 준비 템플릿",
-    category: "여행",
-    items: 12,
-    used: 82,
-    author: "김철수",
-    likes: 45,
-    createdAt: new Date(), // 오늘
-  },
-  {
-    id: "tpl2",
-    title: "장보기 기본 템플릿",
-    category: "생활",
-    items: 8,
-    used: 154,
-    author: "이영희",
-    likes: 120,
-    createdAt: new Date(2024, 11, 20), // 2024-12-20
-  },
-  {
-    id: "tpl3",
-    title: "캠핑 체크리스트",
-    category: "여행",
-    items: 15,
-    used: 40,
-    author: "박민수",
-    likes: 28,
-    createdAt: new Date(2025, 1, 5), // 2025-02-05
-  },
-  {
-    id: "tpl4",
-    title: "명절 준비 체크리스트",
-    category: "집안일",
-    items: 20,
-    used: 65,
-    author: "최지영",
-    likes: 52,
-    createdAt: new Date(2024, 10, 25), // 2024-11-25
-  },
-  {
-    id: "tpl5",
-    title: "출장 준비물",
-    category: "업무",
-    items: 10,
-    used: 120,
-    author: "정대현",
-    likes: 89,
-    createdAt: new Date(2024, 9, 10), // 2024-10-10
-  },
-  {
-    id: "tpl6",
-    title: "운동 루틴 체크리스트",
-    category: "기타",
-    items: 7,
-    used: 95,
-    author: "강수진",
-    likes: 67,
-    createdAt: new Date(2025, 0, 8), // 2025-01-08
-  },
-  {
-    id: "tpl7",
-    title: "결혼식 준비 리스트",
-    category: "기타",
-    items: 30,
-    used: 25,
-    author: "윤서연",
-    likes: 15,
-    createdAt: new Date(2024, 11, 30), // 2024-12-30
-  },
-  {
-    id: "tpl8",
-    title: "이사 준비 체크리스트",
-    category: "생활",
-    items: 25,
-    used: 45,
-    author: "홍길동",
-    likes: 33,
-    createdAt: new Date(2025, 1, 12), // 2025-02-12
-  },
-  {
-    id: "tpl9",
-    title: "해외여행 필수품",
-    category: "여행",
-    items: 18,
-    used: 88,
-    author: "김민지",
-    likes: 76,
-    createdAt: new Date(2024, 11, 5), // 2024-12-05
-  },
-  {
-    id: "tpl10",
-    title: "프로젝트 관리 템플릿",
-    category: "업무",
-    items: 14,
-    used: 200,
-    author: "이준호",
-    likes: 145,
-    createdAt: new Date(2024, 8, 15), // 2024-09-15
-  },
-  {
-    id: "tpl11",
-    title: "주간 쇼핑 리스트",
-    category: "쇼핑",
-    items: 12,
-    used: 300,
-    author: "박지은",
-    likes: 210,
-    createdAt: new Date(2024, 7, 20), // 2024-08-20
-  },
-  {
-    id: "tpl12",
-    title: "생일파티 준비",
-    category: "기타",
-    items: 15,
-    used: 55,
-    author: "송하늘",
-    likes: 42,
-    createdAt: new Date(2025, 0, 22), // 2025-01-22
-  },
-]);
+// 정렬 옵션 (통합)
+// 형식: "필드_방향" (예: "createdAt_desc", "title_asc")
+const sortOption = ref<string>("createdAt_desc"); // 기본값: 최신순
 
-// 필터링 처리
-const filteredTemplates = computed(() => {
-  return templates.value.filter((tpl) => {
-    const matchesSearch =
-      tpl.title.toLowerCase().includes(search.value.toLowerCase());
+// 로딩 및 에러 상태 (둘 중 하나라도 로딩 중이면 로딩)
+const isLoading = computed(() => loadingPublic.value || loadingMy.value);
+const hasError = computed(() => errorPublic.value || errorMy.value);
 
-    const matchesCategory =
-      selectedCategory.value === "전체" ||
-      tpl.category === selectedCategory.value;
-
-    return matchesSearch && matchesCategory;
-  });
+// 내 템플릿 (클라이언트 사이드 정렬 적용)
+const myTemplates = computed(() => {
+  return applyClientSideSort(myTemplatesList.value);
 });
 
-// 페이징
-const currentPage = ref(1);
-const itemsPerPage = 5;
-
-// 총 페이지 수
-const totalPages = computed(() => {
-  return Math.ceil(filteredTemplates.value.length / itemsPerPage);
+// 공개 템플릿 (클라이언트 사이드 정렬 적용)
+const publicTemplates = computed(() => {
+  return applyClientSideSort(publicTemplatesList.value);
 });
 
-// 현재 페이지의 템플릿
-const paginatedTemplates = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredTemplates.value.slice(start, end);
-});
+// 카테고리 변경 핸들러
+const handleCategoryChange = () => {
+  // 카테고리 변경 시 데이터 다시 로드
+  loadTemplatesData();
+};
 
-// 페이지 변경
-const changePage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page;
-    // 페이지 변경 시 스크롤을 맨 위로
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+// 정렬 변경 핸들러
+const handleSortChange = () => {
+  // 정렬 변경 시 데이터 다시 로드
+  loadTemplatesData();
+};
+
+// 작성자 이름 가져오기
+const getAuthorName = (ownerId: string): string => {
+  if (!ownerId) return "";
+  
+  // 캐시에 있으면 반환
+  if (authorNameCache.value.has(ownerId)) {
+    return authorNameCache.value.get(ownerId) || "";
+  }
+  
+  // 캐시에 없으면 비동기로 로드 (UI는 "로딩 중..." 표시)
+  loadAuthorName(ownerId);
+  return "로딩 중...";
+};
+
+// 작성자 이름 비동기 로드
+const loadAuthorName = async (ownerId: string) => {
+  if (!ownerId || authorNameCache.value.has(ownerId)) return;
+  
+  try {
+      const profile = await getUserProfile(ownerId);
+      if (profile && profile.displayName) {
+        authorNameCache.value.set(ownerId, profile.displayName);
+      } else {
+        authorNameCache.value.set(ownerId, "알 수 없음");
+      }
+  } catch (err) {
+    console.error("작성자 프로필 로드 실패:", err);
+    authorNameCache.value.set(ownerId, "알 수 없음");
   }
 };
 
-// 카테고리나 검색어 변경 시 첫 페이지로
-watch([selectedCategory, search], () => {
-  currentPage.value = 1;
-});
-
-// 날짜 포맷팅
-const formatDate = (date) => {
-  if (!date) return "";
-  const timestamp = date.getTime();
-  return formatRelativeTime(timestamp);
+// 작성일 포맷팅
+// 수정 전: Timestamp 타입만 받음 → createdAt.toDate() 직접 호출 시도 시 에러 발생 가능
+// 수정 후: toDate 유틸 함수 사용하여 Timestamp/Date/number 모두 안전하게 처리
+const formatCreatedAt = (createdAt: Timestamp | Date | number | null | undefined): string => {
+  if (!createdAt) return '';
+  // toDate 유틸 함수 사용 (Timestamp, Date, number 모두 처리 가능)
+  const date = toDate(createdAt);
+  if (!date) return '';
+  return formatDateYYYYMMDD(date);
 };
 
-// 3일 이내인지 확인
-const isNew = (date) => {
-  if (!date) return false;
-  const now = new Date();
-  const created = new Date(date);
-  const diffTime = now.getTime() - created.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays <= 3;
+
+// 정렬 옵션 파싱
+const parseSortOption = (): { sortBy: TemplateSortOption; sortOrder: "asc" | "desc" } => {
+  const [field, order] = sortOption.value.split("_");
+  return {
+    sortBy: (field as TemplateSortOption) || "createdAt",
+    sortOrder: (order as "asc" | "desc") || "desc",
+  };
+};
+
+// 클라이언트 사이드 정렬 (제목순, 카테고리순은 클라이언트에서 정렬)
+const applyClientSideSort = (templates: Template[]): Template[] => {
+  const { sortBy, sortOrder } = parseSortOption();
+  
+  if (sortBy === "title") {
+    return [...templates].sort((a, b) => {
+      const aTitle = a.title || "";
+      const bTitle = b.title || "";
+      const comparison = aTitle.localeCompare(bTitle, "ko", { numeric: true });
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+  }
+  
+  if (sortBy === "category") {
+    return [...templates].sort((a, b) => {
+      const aCategory = a.category || "";
+      const bCategory = b.category || "";
+      const comparison = aCategory.localeCompare(bCategory, "ko", { numeric: true });
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+  }
+  
+  // createdAt는 서버에서 정렬되므로 그대로 반환
+  return templates;
+};
+
+// 수정 전: onMounted에서만 로드 → currentUser가 나중에 들어와도 재계산 안 됨
+// 수정 후: 공개 템플릿은 즉시 로드, 내 템플릿은 currentUser watch로 재계산
+
+// 공개 템플릿은 currentUser와 무관하게 즉시 로드
+// 수정: visibility === "public" 조건이 정확히 적용되도록 필터 명확히 설정
+onMounted(async () => {
+  loadingPublic.value = true;
+  errorPublic.value = null;
+  try {
+    // visibility === "public" 조건 명확히 적용
+    const publicFilters: any = {
+      visibility: "public", // 공개 템플릿만 조회
+    };
+    if (selectedCategory.value !== "전체") {
+      publicFilters.category = selectedCategory.value;
+    }
+    
+    // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
+    const { sortBy, sortOrder } = parseSortOption();
+    // createdAt만 서버에서 정렬, 나머지는 클라이언트에서 정렬
+    const serverSortBy = sortBy === "createdAt" ? sortBy : "createdAt";
+    const serverSortOrder = sortBy === "createdAt" ? sortOrder : "desc";
+    const templates = await getTemplates(publicFilters, serverSortBy, serverSortOrder);
+    publicTemplatesList.value = Array.isArray(templates) ? templates : [];
+    
+    // 작성자 이름 로드
+    publicTemplatesList.value.forEach((tpl) => {
+      loadAuthorName(tpl.ownerId);
+    });
+  } catch (err) {
+    errorPublic.value = err as Error;
+    console.error("공개 템플릿 로드 실패:", err);
+    // 에러 발생 시 빈 배열 유지 (가라데이터 사용 금지)
+    publicTemplatesList.value = [];
+  } finally {
+    loadingPublic.value = false;
+  }
+});
+
+// 내 템플릿은 currentUser가 확정된 이후에만 로드 및 재계산
+// 수정: ownerId 조건이 정확히 적용되도록 필터 명확히 설정
+watch(
+  () => currentUser.value,
+  async (user) => {
+    if (!user) {
+      myTemplatesList.value = [];
+      return;
+    }
+
+    loadingMy.value = true;
+    errorMy.value = null;
+    try {
+      // ownerId === user.uid 조건 명확히 적용
+      // visibility와 관계없이 모든 내 템플릿 조회
+      const myFilters: any = {
+        ownerId: user.uid, // 내 템플릿만 조회
+      };
+      if (selectedCategory.value !== "전체") {
+        myFilters.category = selectedCategory.value;
+      }
+      
+      // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
+      const { sortBy, sortOrder } = parseSortOption();
+      // createdAt만 서버에서 정렬, 나머지는 클라이언트에서 정렬
+      const serverSortBy = sortBy === "createdAt" ? sortBy : "createdAt";
+      const serverSortOrder = sortBy === "createdAt" ? sortOrder : "desc";
+      const templates = await getTemplates(myFilters, serverSortBy, serverSortOrder);
+      myTemplatesList.value = Array.isArray(templates) ? templates : [];
+      
+      // 작성자 이름 로드
+      myTemplatesList.value.forEach((tpl) => {
+        loadAuthorName(tpl.ownerId);
+      });
+    } catch (err) {
+      errorMy.value = err as Error;
+      console.error("내 템플릿 로드 실패:", err);
+      // 에러 발생 시 빈 배열 유지 (가라데이터 사용 금지)
+      myTemplatesList.value = [];
+    } finally {
+      loadingMy.value = false;
+    }
+  },
+  { immediate: true } // 초기값도 감시하여 즉시 실행
+);
+
+// 카테고리/정렬 변경 시 전체 재로드
+// 수정: public/my templates 쿼리를 명확히 분리하고 가라데이터 방지
+const loadTemplatesData = async () => {
+  // 공개 템플릿 재로드
+  loadingPublic.value = true;
+  errorPublic.value = null;
+  try {
+    // visibility === "public" 조건 명확히 적용
+    const publicFilters: any = {
+      visibility: "public", // 공개 템플릿만 조회
+    };
+    if (selectedCategory.value !== "전체") {
+      publicFilters.category = selectedCategory.value;
+    }
+    
+    // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
+    const { sortBy, sortOrder } = parseSortOption();
+    // createdAt만 서버에서 정렬, 나머지는 클라이언트에서 정렬
+    const serverSortBy = sortBy === "createdAt" ? sortBy : "createdAt";
+    const serverSortOrder = sortBy === "createdAt" ? sortOrder : "desc";
+    const templates = await getTemplates(publicFilters, serverSortBy, serverSortOrder);
+    publicTemplatesList.value = Array.isArray(templates) ? templates : [];
+    
+    // 작성자 이름 로드
+    publicTemplatesList.value.forEach((tpl) => {
+      loadAuthorName(tpl.ownerId);
+    });
+  } catch (err) {
+    errorPublic.value = err as Error;
+    console.error("공개 템플릿 로드 실패:", err);
+    // 에러 발생 시 빈 배열 유지 (가라데이터 사용 금지)
+    publicTemplatesList.value = [];
+  } finally {
+    loadingPublic.value = false;
+  }
+
+  // 내 템플릿 재로드 (currentUser가 있는 경우만)
+  if (currentUser.value) {
+    loadingMy.value = true;
+    errorMy.value = null;
+    try {
+      // ownerId === currentUser.uid 조건 명확히 적용
+      const myFilters: any = {
+        ownerId: currentUser.value.uid, // 내 템플릿만 조회
+      };
+      if (selectedCategory.value !== "전체") {
+        myFilters.category = selectedCategory.value;
+      }
+      
+      // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
+      const { sortBy, sortOrder } = parseSortOption();
+      // createdAt만 서버에서 정렬, 나머지는 클라이언트에서 정렬
+      const serverSortBy = sortBy === "createdAt" ? sortBy : "createdAt";
+      const serverSortOrder = sortBy === "createdAt" ? sortOrder : "desc";
+      const templates = await getTemplates(myFilters, serverSortBy, serverSortOrder);
+      myTemplatesList.value = Array.isArray(templates) ? templates : [];
+      
+      // 작성자 이름 로드
+      myTemplatesList.value.forEach((tpl) => {
+        loadAuthorName(tpl.ownerId);
+      });
+    } catch (err) {
+      errorMy.value = err as Error;
+      console.error("내 템플릿 로드 실패:", err);
+      // 에러 발생 시 빈 배열 유지 (가라데이터 사용 금지)
+      myTemplatesList.value = [];
+    } finally {
+      loadingMy.value = false;
+    }
+  }
 };
 
 // 상세 이동
-const goDetail = (id) => {
+const goDetail = (id: string) => {
   router.push(`/templates/${id}`);
 };
 </script>
 
 <style scoped>
 .content-wrapper {
-  padding: 0 16px 16px 16px;
+  padding: 16px;
 }
 
 .template-list-section {
@@ -412,16 +523,6 @@ const goDetail = (id) => {
 
 .template-list-section .list-item:last-child {
   border-bottom: none;
-}
-
-.list-card h3 strong {
-  font-weight: 400;
-  font-size: 12px;
-  background-color: #f90;
-  padding: 2px 4px;
-  border-radius: 2px;
-  margin-right: 4px;
-  color: #fff;
 }
 
 .radio-tab {
@@ -466,44 +567,12 @@ const goDetail = (id) => {
   border-color: var(--color-primary, #ff6b35);
 }
 
-.pagination {
+.empty-state {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  margin-top: 24px;
-  padding: 0 0 16px 0;
-}
-
-.pagination-btn {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 25.2px;
-  height: 25.2px;
-  padding: 0 8.4px;
-  border: 1px solid #d1d5db;
-  border-radius: 4.2px;
-  background-color: #fff;
-  color: #374151;
-  font-size: 9.8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.pagination-btn:hover:not(.pagination-btn--disabled) {
-  background-color: #f3f4f6;
-  border-color: var(--color-primary, #ff6b35);
-}
-
-.pagination-btn--active {
-  background-color: var(--color-primary, #ff6b35);
-  color: #fff;
-  border-color: var(--color-primary, #ff6b35);
-}
-
-.pagination-btn--disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  padding: 48px 16px;
+  text-align: center;
 }
 </style>

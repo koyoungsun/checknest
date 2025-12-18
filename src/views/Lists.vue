@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col">
+  <div class="min-h-screen bg-gray-50 flex flex-col checklist-wrapper">
     <PageSubtitle />
 
     <!-- 리스트 전체 -->
-    <main class="flex-1 overflow-y-auto space-y-8 pb-16 content-wrapper">
+    <main class="flex-1 overflow-y-auto space-y-8 pb-16 content-wrapper checklist-body">
 
       <!-- ① 나의 체크리스트 -->
-      <section>
-        <div class="flex items-center justify-between mb-2">
+      <section class="checklist-my-section">
+        <div class="flex items-center justify-between mb-2 checklist-my-header">
           <h2 class="text-lg font-semibold text-gray-600">
             나의 체크리스트(todo)
           </h2>
@@ -16,12 +16,12 @@
           </p>
         </div>
 
-        <div v-if="myList.length" class="space-y-0 my-list-section">
+        <div v-if="myList.length" class="space-y-0 my-list-section checklist-my-list">
           <div
             v-for="item in myList"
             :key="item.id"
             @click="goDetail(item.id)"
-            class="list-card list-item"
+            class="list-card list-item checklist-my-item"
           >
             <!-- 제목 -->
             <div class="mb-1">
@@ -66,15 +66,15 @@
         </div>
 
         <!-- 개인 리스트 없을 때 -->
-        <div v-else class="empty-state text-xs my-list-section">
+        <div v-else class="empty-state text-xs my-list-section checklist-my-empty">
           <i class="bi bi-inbox"></i>
           <p>나만 사용하는 리스트가 없습니다.<br />새 체크리스트를 만들어 보세요.</p>
         </div>
       </section>
 
       <!-- ② 공유 중인 체크리스트 -->
-      <section>
-        <div class="flex items-center justify-between mb-2">
+      <section class="checklist-shared-section">
+        <div class="flex items-center justify-between mb-2 checklist-shared-header">
           <h2 class="text-lg font-semibold text-gray-600">
             공유 중인 체크리스트
           </h2>
@@ -588,56 +588,20 @@ const startProgressAnimation = () => {
 // 데이터 로드 함수 (조회만 수행, 생성 로직 없음)
 // 주의: watch/onMounted에서는 조회(load)만 수행, 생성(create/add) 로직은 실행하지 않음
 const loadData = async () => {
+  // 인증 준비 전 로딩 차단: currentUser가 null이면 절대 실행하지 않음
   if (!currentUser.value) {
-    console.log("[loadData] 로그인 유저 없음, 데이터 로드 스킵");
     return;
   }
   
-  const user = currentUser.value;
-  console.log("========== [Lists.vue] 데이터 로드 시작 (조회만 수행) ==========");
-  console.log("[loadData] user.uid:", user.uid);
-  
   try {
-    // 1. checklists 초기화
-    console.log("[loadData] 1단계: resetChecklists() 호출");
-    resetChecklists();
-    console.log("[loadData] resetChecklists() 후 checklists.value:", checklists.value.length, "개");
+    // 수정: resetChecklists() 제거 - 단순 화면 진입에서는 초기화하지 않음
+    // 로그아웃/계정 전환 시에만 resetChecklists() 호출
     
-    // 2. 내가 만든 체크리스트 로드 (ownerId로 조회) - 조회만 수행
-    console.log("[loadData] 2단계: loadMyChecklists(false) 호출");
+    // 1. 내가 만든 체크리스트 로드 (ownerId로 조회)
     await loadMyChecklists(false);
-    console.log("[loadData] loadMyChecklists() 후 checklists.value:", checklists.value.length, "개");
-    console.log("[loadData] loadMyChecklists() 후 내 체크리스트:", checklists.value.filter(c => c.ownerId === user.uid).length, "개");
     
-    // 3. 공유 체크리스트 로드 (members에 포함되어 있지만 owner가 아닌 것만) - 조회만 수행
-    console.log("[loadData] 3단계: loadSharedChecklists(false) 호출");
+    // 2. 공유 체크리스트 로드 (members에 포함되어 있지만 owner가 아닌 것만)
     await loadSharedChecklists(false);
-    console.log("[loadData] loadSharedChecklists() 후 checklists.value:", checklists.value.length, "개");
-    
-    // 4. 최종 결과 로그
-    console.log("========== [Lists.vue] 데이터 로드 완료 ==========");
-    console.log("[loadData] 최종 checklists.value:", checklists.value.length, "개");
-    console.log("[loadData] 최종 checklists 상세:", checklists.value.map(c => ({ 
-      id: c.id, 
-      title: c.title, 
-      ownerId: c.ownerId, 
-      members: c.members,
-      membersLength: c.members.length,
-      isOwner: c.ownerId === user.uid,
-      isPersonal: c.members.length <= 1
-    })));
-    
-    console.log("[loadData] myList.value:", myList.value.length, "개");
-    console.log("[loadData] myList 상세:", myList.value.map(item => ({
-      id: item.id,
-      title: item.title,
-      ownerId: item.ownerId,
-      members: item.members,
-      membersLength: item.members.length
-    })));
-    
-    console.log("[loadData] sharedList.value:", sharedList.value.length, "개");
-    console.log("[loadData] completedList.value:", completedList.value.length, "개");
     
     // 데이터 로드 후 애니메이션 시작
     setTimeout(() => {
@@ -645,31 +609,37 @@ const loadData = async () => {
     }, 100);
   } catch (error) {
     console.error("[loadData] 데이터 로드 중 오류 발생:", error);
+    // 에러 발생 시에도 기존 state는 유지 (초기화하지 않음)
   }
 };
 
-// currentUser 변경 감지 및 데이터 로드 (조회만 수행)
-watch(() => currentUser.value, async (user) => {
+// currentUser 변경 감지 및 데이터 로드
+// 수정: immediate 사용 시에도 currentUser가 null이면 실행하지 않음
+watch(() => currentUser.value, async (user, prevUser) => {
   if (user) {
-    console.log("[watch currentUser] 로그인 유저 감지:", user.uid);
+    // 로그인 또는 계정 전환 시
+    // 이전 사용자와 다른 경우에만 reset (계정 전환 감지)
+    if (prevUser && prevUser.uid !== user.uid) {
+      // 계정 전환 시 기존 데이터 초기화
+      resetChecklists();
+    }
     await loadData();
-  } else {
-    console.log("[watch currentUser] 로그인 유저 없음");
-    // 로그아웃 시 checklists 초기화
+  } else if (prevUser) {
+    // 로그아웃 시에만 checklists 초기화
     resetChecklists();
   }
-}, { immediate: true });
+  // currentUser가 null이고 이전에도 null이면 아무것도 하지 않음
+});
 
-// 페이지가 활성화될 때마다 데이터 다시 로드 (다른 페이지에서 돌아올 때) - 조회만 수행
+// 페이지가 활성화될 때마다 데이터 다시 로드 (다른 페이지에서 돌아올 때)
 onActivated(() => {
-  console.log("[onActivated] Lists.vue 페이지 활성화");
-  // 현재 로그인된 사용자가 있으면 데이터 다시 로드 (조회만 수행)
-  if (currentUser.value) {
-    console.log("[onActivated] 현재 로그인 유저 있음, 데이터 리로드:", currentUser.value.uid);
-    loadData();
-  } else {
-    console.log("[onActivated] 현재 로그인 유저 없음");
+  // 인증 준비 전 로딩 차단: currentUser가 null이면 절대 실행하지 않음
+  if (!currentUser.value) {
+    return;
   }
+  
+  // 현재 로그인된 사용자가 있으면 데이터 다시 로드
+  loadData();
 });
 </script>
 

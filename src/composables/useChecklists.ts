@@ -85,23 +85,15 @@ export const useChecklists = () => {
     loading.value = true;
     error.value = null;
     try {
-      console.log("[loadMyChecklists] 시작 - ownerId:", currentUser.value.uid);
-      
       // Firestore에서 ownerId로 조회한 결과만 사용 (isCompleted 필터 적용)
+      // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
       const myChecklists = await getChecklistsService({
         ownerId: currentUser.value.uid,
         isCompleted,
       });
       
-      console.log("[loadMyChecklists] Firestore에서 가져온 내 체크리스트:", myChecklists.length, "개");
-      console.log("[loadMyChecklists] 내 체크리스트 상세:", myChecklists.map(c => ({
-        id: c.id,
-        title: c.title,
-        ownerId: c.ownerId,
-        members: c.members,
-        membersLength: c.members.length,
-        isDefault: c.isDefault
-      })));
+      // 초기 가라데이터 방지: 배열이 아닌 경우 빈 배열로 처리
+      const validMyChecklists = Array.isArray(myChecklists) ? myChecklists : [];
       
       // 기존 checklists에서 내가 만든 체크리스트를 제거하고 새로 로드한 것으로 교체
       // 공유 체크리스트는 유지
@@ -109,13 +101,11 @@ export const useChecklists = () => {
         (c) => c.ownerId !== currentUser.value!.uid
       );
       
-      console.log("[loadMyChecklists] 기존 공유 체크리스트:", sharedChecklists.length, "개");
-      
       // 동일 id를 가진 체크리스트는 1번만 포함되도록 Set 기반 정규화
       const checklistMap = new Map<string, Checklist>();
       
       // 새로 로드한 내 체크리스트 추가
-      myChecklists.forEach(c => {
+      validMyChecklists.forEach(c => {
         checklistMap.set(c.id, c);
       });
       
@@ -126,12 +116,21 @@ export const useChecklists = () => {
         }
       });
       
+      // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
       checklists.value = Array.from(checklistMap.values());
-      
-      console.log("[loadMyChecklists] 최종 checklists.value:", checklists.value.length, "개");
-      console.log("[loadMyChecklists] 기본 todo 포함 여부:", checklists.value.some(c => c.isDefault === true));
-    } catch (err) {
+    } catch (err: any) {
       handleError(err, "내 체크리스트 목록 로드 실패");
+      
+      // Firestore 인덱스 오류인 경우 기존 state 유지 (빈 배열로 덮어쓰지 않음)
+      if (err?.code === "failed-precondition" && err?.message?.includes("index")) {
+        console.warn("[loadMyChecklists] Firestore 인덱스 오류 - 기존 데이터 유지");
+        // 기존 checklists.value는 그대로 유지 (초기화하지 않음)
+        return;
+      }
+      
+      // 기타 에러 발생 시에도 기존 공유 체크리스트는 유지
+      // 내 체크리스트만 제거하지 않고 기존 state 유지
+      // (데이터가 갑자기 사라지지 않도록)
     } finally {
       loading.value = false;
     }
@@ -158,14 +157,14 @@ export const useChecklists = () => {
     loading.value = true;
     error.value = null;
     try {
-      console.log("[loadSharedChecklists] 시작 - memberId:", currentUser.value.uid);
-      
       // memberId로 조회 (isCompleted 필터는 사용하지 않음 - 클라이언트에서 필터링)
+      // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
       const allMemberChecklists = await getChecklistsService({
         memberId: currentUser.value.uid,
       });
       
-      console.log("[loadSharedChecklists] Firestore에서 가져온 모든 멤버 체크리스트:", allMemberChecklists.length, "개");
+      // 초기 가라데이터 방지: 배열이 아닌 경우 빈 배열로 처리
+      const validMemberChecklists = Array.isArray(allMemberChecklists) ? allMemberChecklists : [];
       
       // 종료일이 남아있는지 확인하는 헬퍼 함수
       const hasRemainingDueDate = (checklist: Checklist): boolean => {
@@ -187,7 +186,7 @@ export const useChecklists = () => {
       };
       
       // ownerId가 아닌 체크리스트만 필터링하고, 필터링 규칙 적용
-      const sharedOnly = allMemberChecklists.filter(
+      const sharedOnly = validMemberChecklists.filter(
         (checklist) => {
           // ownerId가 현재 사용자인 체크리스트는 제외 (myList에 포함됨)
           if (checklist.ownerId === currentUser.value!.uid) {
@@ -219,25 +218,10 @@ export const useChecklists = () => {
         }
       );
       
-      console.log("[loadSharedChecklists] 필터링된 공유 체크리스트:", sharedOnly.length, "개");
-      console.log("[loadSharedChecklists] 공유 체크리스트 상세:", sharedOnly.map(c => ({
-        id: c.id,
-        title: c.title,
-        ownerId: c.ownerId,
-        members: c.members,
-        membersLength: c.members.length,
-        progress: c.progress,
-        status: (c as any).status,
-        isCompleted: c.isCompleted,
-        dueDate: c.dueDate
-      })));
-      
       // 기존 checklists에서 내가 만든 체크리스트(ownerId === currentUser.uid) 보존
       const myChecklists = checklists.value.filter(
         (c) => c.ownerId === currentUser.value!.uid
       );
-      
-      console.log("[loadSharedChecklists] 기존 내 체크리스트:", myChecklists.length, "개");
       
       // 동일 id를 가진 체크리스트는 1번만 포함되도록 Map 기반 정규화
       const checklistMap = new Map<string, Checklist>();
@@ -254,12 +238,20 @@ export const useChecklists = () => {
         }
       });
       
+      // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
       checklists.value = Array.from(checklistMap.values());
-      
-      console.log("[loadSharedChecklists] 최종 checklists.value:", checklists.value.length, "개");
-      console.log("[loadSharedChecklists] 기본 todo 포함 여부:", checklists.value.some(c => c.isDefault === true));
-    } catch (err) {
+    } catch (err: any) {
       handleError(err, "공유 체크리스트 목록 로드 실패");
+      
+      // Firestore 인덱스 오류인 경우 기존 state 유지 (빈 배열로 덮어쓰지 않음)
+      if (err?.code === "failed-precondition" && err?.message?.includes("index")) {
+        console.warn("[loadSharedChecklists] Firestore 인덱스 오류 - 기존 데이터 유지");
+        // 기존 checklists.value는 그대로 유지 (초기화하지 않음)
+        return;
+      }
+      
+      // 기타 에러 발생 시에도 기존 state 유지
+      // (데이터가 갑자기 사라지지 않도록)
     } finally {
       loading.value = false;
     }
@@ -494,9 +486,13 @@ export const useChecklists = () => {
 
   /**
    * checklists 초기화 (외부에서 호출 가능)
+   * 수정: UI가 빈 상태를 즉시 렌더링하지 않도록 loading 상태를 함께 관리
    */
   const resetChecklists = () => {
+    // loading 상태를 true로 설정하여 UI가 빈 상태를 렌더링하지 않도록 함
+    loading.value = true;
     checklists.value = [];
+    // reset 후 즉시 load가 호출되므로 loading은 load 함수에서 false로 변경됨
   };
 
   return {

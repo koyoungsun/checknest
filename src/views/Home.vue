@@ -1,168 +1,257 @@
 <template>
-    <div class="flex flex-col min-h-screen bg-gray-50 main-wrap">
+    <div class="flex flex-col min-h-screen bg-gray-50 main-wrap home-wrapper">
       <!-- ================= MAIN CONTENT ================= -->
-      <main class="flex-1 pb-24 px-4">
+      <main class="flex-1 pb-24 px-4 home-body">
         <!-- -------- 정렬 옵션 -------- -->
         <div class="flex justify-end my-4 hidden">
           <button @click="openSort" class="px-3 py-1 bg-white border rounded-lg shadow-sm text-sm">정렬 ▾</button>
         </div>
-        <!-- -------- 스와이프 체크리스트 -------- -->
-        <section class="mb-6 overflow-x-hidden my-check home-swipe-section">
-          <h2 class="section-title">내 체크리스트
-            <router-link to="/lists" class="more-link">더보기 <i class="bi bi-chevron-right"></i></router-link>
-          </h2>
-          <Swiper
-            :slides-per-view="2.5"
-            :space-between="8"
-            :centered-slides="false"
-            class="swiper-container"
-            style="padding: 0 16px;"
-            @slideChange="onSlideChange"
-          >
-            <SwiperSlide
-              v-for="item in homeChecklists"
-              :key="item.id"
-              class="swiper-slide"
+        <!-- -------- 스와이프 체크리스트 (로그인 전/후 분기) -------- -->
+        <section class="mb-6 overflow-x-hidden my-check home-swipe-section home-checklist-section">
+            <h2 class="section-title home-checklist-header">
+            {{ currentUser ? '내 체크리스트' : 'CheckNest 시작하기' }}
+            <router-link 
+              v-if="currentUser && homeChecklists.length >= 3" 
+              to="/lists" 
+              class="more-link home-checklist-more"
             >
-              <div
-                @click="goDetail(item.id)"
-                class="list-card list-item"
-                :class="item.isDefault ? 'my-list-section' : 'shared-list-section'"
-                style="height: 160px; cursor: pointer;"
-              >
-                <!-- 제목 -->
-                <div class="mb-1">
-                  <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px;">
-                    <strong>{{ item.isDefault ? '개인' : '공유' }}</strong> <span class="truncate">{{ item.title }}</span>
-                  </h3>
-                </div>
+              더보기 <i class="bi bi-chevron-right"></i>
+            </router-link>
+          </h2>
 
-                <!-- 작성일 (항상 표시) -->
-                <p class="flex items-center" :style="`font-size: 12px; margin-top: 4px; margin-bottom: 6px; gap: 4px; color: ${item.isDefault ? '#fff' : '#666'};`">
-                  <i class="bi bi-calendar3" :style="`font-size: 12px; margin-right: 4px; color: ${item.isDefault ? '#fff' : '#666'};`"></i>
-                  작성일 · {{ formatCreatedAt(item.createdAt) }}
+          <!-- 로그인 전: 서비스 소개 영역 -->
+          <template v-if="!currentUser">
+            <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg home-login-prompt">
+              <div class="text-center mb-4">
+                <i class="bi bi-card-checklist text-5xl mb-3"></i>
+                <h3 class="text-xl font-bold mb-2">체크리스트로 일상을 관리하세요</h3>
+                <p class="text-sm text-orange-50 leading-relaxed mb-4">
+                  할 일을 체계적으로 관리하고<br />
+                  템플릿으로 빠르게 시작하세요
                 </p>
-
-                <!-- 종료일 (dueDate가 있는 경우만 표시, 기본 todo 제외) -->
-                <p
-                  v-if="item.dueDate && !item.isDefault"
-                  class="flex items-center"
-                  :style="`font-size: 12px; margin-top: 4px; margin-bottom: 6px; gap: 4px; color: ${isFinished(item) ? '#ef4444' : '#666'};`"
-                >
-                  <i class="bi bi-calendar-event" :style="`font-size: 12px; margin-right: 4px; color: ${item.isDefault ? '#fff' : '#666'};`"></i>
-                  종료일 · {{ formatDueDate(getDueDateAsDate(item.dueDate)?.toISOString().split('T')[0] || '') }}
-                  <span v-if="isFinished(item)" style="margin-left: 4px; font-weight: 600; font-size: 11px;">종료됨</span>
-                </p>
-
-                <!-- 진행률 -->
-                <div class="mt-2 flex items-center gap-2" v-if="!item.isDefault">
-                  <div class="flex-1 progress-bar progress-bar--small">
-                    <div
-                      class="progress-fill"
-                      :style="{ width: (item.progress || 0) + '%', backgroundColor: getProgressColorFromValue(item.progress || 0) }"
-                    ></div>
-                  </div>
-                </div>
-                <!-- 진행률 퍼센트 (우측 중앙 고정, 기본 todo 제외) -->
-                <span v-if="!item.isDefault" style="position: absolute; top: 50%; right: 16px; transform: translateY(-50%); white-space: nowrap; display: flex; align-items: baseline; gap: 4px;" :style="{ color: getProgressColorFromValue(item.progress || 0) }">
-                  <span style="font-size: 34px; font-weight: 700;">{{ getAnimatedProgress(item.id) }}</span>
-                  <span style="font-size: 20px; font-weight: 500;">%</span>
-                </span>
               </div>
-            </SwiperSlide>
-            <!-- 체크리스트 만들기 카드 -->
-            <SwiperSlide class="swiper-slide">
-              <router-link
-                to="/checklists/create"
-                class="check-card"
-                style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 160px;"
+              <div class="space-y-2 text-sm text-orange-50">
+                <div class="flex items-center gap-2">
+                  <i class="bi bi-check-circle text-lg"></i>
+                  <span>체크리스트 생성 및 관리</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="bi bi-check-circle text-lg"></i>
+                  <span>템플릿으로 빠른 시작</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="bi bi-check-circle text-lg"></i>
+                  <span>게시판에서 정보 공유</span>
+                </div>
+              </div>
+              <div class="mt-6 flex gap-3">
+                <button
+                  @click="handleShowLoginPrompt"
+                  class="flex-1 px-4 py-2 bg-white text-orange-600 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
+                >
+                  로그인
+                </button>
+                <button
+                  @click="router.push('/signup')"
+                  class="flex-1 px-4 py-2 bg-orange-700 text-white rounded-lg font-semibold hover:bg-orange-800 transition-colors"
+                >
+                  회원가입
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <!-- 로그인 후: 기존 체크리스트 스와이프 -->
+          <template v-else>
+            <template v-if="homeChecklists && homeChecklists.length > 0">
+              <Swiper
+                :slides-per-view="2.5"
+                :space-between="8"
+                :centered-slides="false"
+                class="swiper-container home-checklist-list"
+                style="padding: 0 16px;"
+                @slideChange="onSlideChange"
               >
-                <i class="bi bi-plus-circle" style="font-size: 48px; color: #ff6b35; margin-bottom: 8px;"></i>
-                <h3 style="font-size: 18px; color: #e55a2b;">체크리스트 만들기</h3>
-              </router-link>
-            </SwiperSlide>
-          </Swiper>
+                <SwiperSlide
+                  v-for="item in homeChecklists"
+                  :key="item.id"
+                  class="swiper-slide home-checklist-slide"
+                >
+                  <div
+                    @click="goDetail(item.id)"
+                    class="list-card list-item home-checklist-item"
+                    :class="item.isDefault ? 'my-list-section' : 'shared-list-section'"
+                    style="height: 160px; cursor: pointer;"
+                  >
+                    <!-- 제목 -->
+                    <div class="mb-1">
+                      <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px;">
+                        <strong>{{ item.isDefault ? '개인' : '공유' }}</strong> <span class="truncate">{{ item.title }}</span>
+                      </h3>
+                    </div>
+
+                    <!-- 작성일 (항상 표시) -->
+                    <p class="flex items-center" :style="`font-size: 12px; margin-top: 4px; margin-bottom: 6px; gap: 4px; color: ${item.isDefault ? '#fff' : '#666'};`">
+                      <i class="bi bi-calendar3" :style="`font-size: 12px; margin-right: 4px; color: ${item.isDefault ? '#fff' : '#666'};`"></i>
+                      작성일 · {{ formatCreatedAt(item.createdAt) }}
+                    </p>
+
+                    <!-- 종료일 (dueDate가 있는 경우만 표시, 기본 todo 제외) -->
+                    <p
+                      v-if="item.dueDate && !item.isDefault"
+                      class="flex items-center"
+                      :style="`font-size: 12px; margin-top: 4px; margin-bottom: 6px; gap: 4px; color: ${isFinished(item) ? '#ef4444' : '#666'};`"
+                    >
+                      <i class="bi bi-calendar-event" :style="`font-size: 12px; margin-right: 4px; color: ${item.isDefault ? '#fff' : '#666'};`"></i>
+                      종료일 · {{ formatDueDate(getDueDateAsDate(item.dueDate)?.toISOString().split('T')[0] || '') }}
+                      <span v-if="isFinished(item)" style="margin-left: 4px; font-weight: 600; font-size: 11px;">종료됨</span>
+                    </p>
+
+                    <!-- 진행률 -->
+                    <div class="mt-2 flex items-center gap-2" v-if="!item.isDefault">
+                      <div class="flex-1 progress-bar progress-bar--small">
+                        <div
+                          class="progress-fill"
+                          :style="{ width: (item.progress || 0) + '%', backgroundColor: getProgressColorFromValue(item.progress || 0) }"
+                        ></div>
+                      </div>
+                    </div>
+                    <!-- 진행률 퍼센트 (우측 중앙 고정, 기본 todo 제외) -->
+                    <span v-if="!item.isDefault" style="position: absolute; top: 50%; right: 16px; transform: translateY(-50%); white-space: nowrap; display: flex; align-items: baseline; gap: 4px;" :style="{ color: getProgressColorFromValue(item.progress || 0) }">
+                      <span style="font-size: 34px; font-weight: 700;">{{ getAnimatedProgress(item.id) }}</span>
+                      <span style="font-size: 20px; font-weight: 500;">%</span>
+                    </span>
+                  </div>
+                </SwiperSlide>
+                <!-- 체크리스트 만들기 카드 -->
+                <SwiperSlide class="swiper-slide home-checklist-slide">
+                  <div
+                    @click="handleCreateChecklist"
+                    class="check-card cursor-pointer home-checklist-create"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 160px;"
+                  >
+                    <i class="bi bi-plus-circle" style="font-size: 48px; color: #ff6b35; margin-bottom: 8px;"></i>
+                    <h3 style="font-size: 18px; color: #e55a2b;">체크리스트 만들기</h3>
+                  </div>
+                </SwiperSlide>
+              </Swiper>
+            </template>
+            <div v-else class="text-center py-8 text-gray-500 text-sm home-checklist-empty">
+              아직 등록된 체크리스트가 없습니다.
+            </div>
+          </template>
         </section>
         <!-- 배너존 #1 -->
         <div v-if="banner1"
-              class="mt-3 bg-white rounded-xl overflow-hidden shadow-sm border">
+              class="mt-3 bg-white rounded-xl overflow-hidden shadow-sm border home-banner">
           <img :src="banner1?.image" class="w-full object-cover" />
         </div>
         <!-- -------- 최근 템플릿 -------- -->
-        <section class="mb-6 recent-template">
-          <h2 class="section-title">최근 템플릿
-            <router-link to="/templates" class="more-link">더보기<i class="bi bi-chevron-right"></i></router-link>
+        <section class="mb-6 recent-template home-template-section">
+          <h2 class="section-title home-template-header">최근 템플릿
+            <router-link 
+              v-if="!loadingTemplates && recentTemplates.length >= 3" 
+              to="/templates" 
+              class="more-link home-template-more"
+            >
+              더보기 <i class="bi bi-chevron-right"></i>
+            </router-link>
           </h2>
   
-          <div class="bg-white rounded-xl shadow-sm border divide-y">
-            <router-link 
-              v-for="tpl in recentTemplates" 
-              :key="tpl.id"
-              :to="`/templates/${tpl.id}`" 
-              class="block hover:bg-gray-50"
-              style="padding: 8px; display: flex; flex-direction: column; align-items: flex-start;"
-            >
-              <!-- 제목 -->
-              <div class="mb-1">
-                <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
-                  <strong style="font-weight: 400; font-size: 12px; background-color: #f90; padding: 2px 4px; border-radius: 2px; color: #fff;">{{ tpl.category }}</strong>
-                  <span class="truncate" style="color: #111;">{{ tpl.title }}</span>
-                  <em v-if="isNewTemplate(tpl.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
-                </h3>
-              </div>
+          <div class="bg-white rounded-xl shadow-sm border divide-y home-template-list">
+            <template v-if="recentTemplates && recentTemplates.length > 0">
+              <router-link 
+                v-for="tpl in recentTemplates" 
+                :key="tpl.id"
+                :to="`/templates/${tpl.id}`" 
+                class="block hover:bg-gray-50 home-template-item"
+                style="padding: 8px; display: flex; flex-direction: column; align-items: flex-start;"
+              >
+                <!-- 제목 -->
+                <div class="mb-1">
+                  <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
+                    <strong style="font-weight: 400; font-size: 12px; background-color: #f90; padding: 2px 4px; border-radius: 2px; color: #fff;">{{ tpl.category }}</strong>
+                    <span class="truncate" style="color: #111;">{{ tpl.title }}</span>
+                    <em v-if="isNewTemplate(tpl.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
+                  </h3>
+                </div>
 
-              <!-- 작성자/날짜/추천/사용 -->
-              <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
-                <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성자:</strong> {{ tpl.author }}</span>
-                <span style="flex-shrink: 0;">·</span>
-                <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatTemplateDate(tpl.createdAt) }}</span>
-                <span style="flex-shrink: 0;">·</span>
-                <span style="flex-shrink: 0; white-space: nowrap;"><strong>추천:</strong> {{ tpl.likes }}</span>
-                <span style="flex-shrink: 0;">·</span>
-                <span style="flex-shrink: 0; white-space: nowrap;"><strong>사용:</strong> {{ tpl.used }}회</span>
-              </div>
-            </router-link>
+                <!-- 작성자/날짜/추천/사용 -->
+                <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
+                  <span v-if="getAuthorName(tpl.ownerId)" style="flex-shrink: 0; white-space: nowrap;"><strong>작성자:</strong> {{ getAuthorName(tpl.ownerId) }}</span>
+                  <span v-if="getAuthorName(tpl.ownerId) && tpl.createdAt" style="flex-shrink: 0;">·</span>
+                  <span v-if="tpl.createdAt" style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatTemplateCreatedAt(tpl.createdAt) }}</span>
+                  <span v-if="tpl.createdAt" style="flex-shrink: 0;">·</span>
+                  <span style="flex-shrink: 0; white-space: nowrap;"><strong>추천:</strong> {{ tpl.likeCount || 0 }}</span>
+                  <span style="flex-shrink: 0;">·</span>
+                  <span style="flex-shrink: 0; white-space: nowrap;"><strong>사용:</strong> {{ tpl.usedCount || 0 }}회</span>
+                </div>
+              </router-link>
+            </template>
+            <div v-else-if="!loadingTemplates" class="text-center py-8 text-gray-500 text-sm home-template-empty">
+              공유된 템플릿이 아직 없습니다.
+            </div>
           </div>
   
           <!-- 배너존 #2 -->
           <div v-if="banner2"
-               class="mt-3 bg-white rounded-xl overflow-hidden shadow-sm border">
+               class="mt-3 bg-white rounded-xl overflow-hidden shadow-sm border home-banner">
             <img :src="banner2?.image" class="w-full object-cover" />
           </div>
   
           
         </section>
         <!-- -------- 최근 게시글 -------- -->
-        <section class="mb-10">
-          <div class="recent-board">
-            <h2 class="section-title">최근 게시글
-              <router-link to="/posts" class="more-link">더보기<i class="bi bi-chevron-right"></i></router-link>
+        <section class="mb-10 home-post-section">
+          <div class="recent-board home-post-wrapper">
+            <h2 class="section-title home-post-header">최근 게시글
+              <router-link 
+                v-if="!loadingBoards && recentBoards.length >= 3" 
+                to="/posts" 
+                class="more-link home-post-more"
+              >
+                더보기 <i class="bi bi-chevron-right"></i>
+              </router-link>
             </h2>
     
-            <div class="bg-white rounded-xl shadow-sm border divide-y">
-              <router-link 
-                v-for="post in recentPosts" 
-                :key="post.id"
-                :to="`/posts/${post.id}`" 
-                class="block hover:bg-gray-50"
-                style="padding: 8px; display: flex; flex-direction: column; align-items: flex-start;"
-              >
-                <!-- 제목 -->
-                <div class="mb-1">
-                  <h3 class="font-semibold flex items-center gap-1" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
-                    <strong style="font-weight: 400; font-size: 12px; background-color: #f90; padding: 2px 4px; border-radius: 2px; color: #fff;">여행</strong>
-                    <span class="truncate" style="color: #111;">{{ post.title }}</span>
-                    <em v-if="isNewPost(post.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
-                  </h3>
-                </div>
-                
-                <!-- 작성일/코멘트 -->
-                <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
-                  <span style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatPostDate(post.createdAt) }}</span>
-                  <span style="flex-shrink: 0;">·</span>
-                  <span style="flex-shrink: 0; white-space: nowrap;"><strong>코멘트:</strong> {{ post.comments.length }}개</span>
-                </div>
-              </router-link>
+            <div class="bg-white rounded-xl shadow-sm border divide-y home-post-list">
+              <template v-if="recentBoards && recentBoards.length > 0">
+                <router-link 
+                  v-for="post in recentBoards" 
+                  :key="post.id"
+                  :to="`/posts/${post.id}`" 
+                  class="block hover:bg-gray-50 home-post-item"
+                  style="padding: 8px; display: flex; flex-direction: column; align-items: flex-start;"
+                >
+                  <!-- 제목 -->
+                  <div class="mb-1">
+                    <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
+                      <strong style="font-weight: 400; font-size: 12px; background-color: #09f; padding: 2px 4px; border-radius: 2px; color: #fff;">{{ getPostCategoryLabel(post.category) }}</strong>
+                      <span class="truncate" style="color: #111;">{{ post.title }}</span>
+                      <em v-if="isNewPost(post.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
+                    </h3>
+                  </div>
+
+                  <!-- 내용 미리보기 -->
+                  <div v-if="post.content" class="text-xs text-gray-600 mt-1 line-clamp-1">
+                    {{ post.content.substring(0, 100) }}{{ post.content.length > 100 ? '...' : '' }}
+                  </div>
+
+                  <!-- 작성자/날짜/좋아요 -->
+                  <div style="display: flex; align-items: center; justify-content: flex-start; font-size: 12px; margin-top: 4px; margin-bottom: 0; flex-wrap: nowrap; width: 100%; gap: 4px;" class="text-gray-500">
+                    <span v-if="post.authorName" style="flex-shrink: 0; white-space: nowrap;"><strong>작성자:</strong> {{ post.authorName }}</span>
+                    <span v-if="post.authorName && post.createdAt" style="flex-shrink: 0;">·</span>
+                    <span v-if="post.createdAt" style="flex-shrink: 0; white-space: nowrap;"><strong>작성일:</strong> {{ formatPostCreatedAt(post.createdAt) }}</span>
+                    <span v-if="post.createdAt" style="flex-shrink: 0;">·</span>
+                    <span style="flex-shrink: 0; white-space: nowrap;"><strong>좋아요:</strong> {{ post.likeCount || 0 }}</span>
+                    <span v-if="post.commentCount > 0" style="flex-shrink: 0;">·</span>
+                    <span v-if="post.commentCount > 0" style="flex-shrink: 0; white-space: nowrap;">댓글 {{ post.commentCount }}개</span>
+                  </div>
+                </router-link>
+              </template>
+              <div v-else class="text-center py-8 text-gray-500 text-sm home-post-empty">
+                아직 등록된 게시글이 없습니다.
+              </div>
             </div>
           </div>
         </section>
@@ -172,11 +261,16 @@
   <script setup lang="ts">
     import { Swiper, SwiperSlide } from "swiper/vue";
     import "swiper/css";
-    import { ref, onMounted, computed } from "vue";
+    import { ref, computed, watch, onMounted } from "vue";
     import { useRouter } from "vue-router";
-    import { formatTemplateDate, formatPostDate, isOverdue, calculateDDay, getDDayColor } from "@/utils/dateUtils";
+    import { formatTemplateDate, formatPostDate, isOverdue, calculateDDay, getDDayColor, toDate } from "@/utils/dateUtils";
+    import { isNewTemplate } from "@/utils/templateUtils";
     import { useChecklists } from "@/composables/useChecklists";
     import { useAuth } from "@/composables/useAuth";
+    import { useAuthorName } from "@/composables/useAuthorName";
+    import { useBottomSheet } from "@/composables/useBottomSheet";
+    import type { Template } from "@/types/template";
+    import { usePosts } from "@/composables/usePosts";
 
     interface Banner {
       image: string;
@@ -197,6 +291,8 @@
     const router = useRouter();
     const { checklists, loadMyChecklists, loadSharedChecklists } = useChecklists();
     const { currentUser } = useAuth();
+    const { getAuthorName, loadAuthorNames } = useAuthorName();
+    const { showLoginPrompt } = useBottomSheet();
     
     // router가 undefined가 되지 않도록 보장
     if (!router) {
@@ -210,6 +306,20 @@
         return;
       }
       router.push(`/checklists/${id}`);
+    };
+
+    // 체크리스트 만들기 클릭 핸들러
+    const handleCreateChecklist = () => {
+      if (!currentUser.value) {
+        showLoginPrompt.value = true;
+        return;
+      }
+      router.push("/checklists/new");
+    };
+
+    // 로그인 유도 모달 표시
+    const handleShowLoginPrompt = () => {
+      showLoginPrompt.value = true;
     };
     
     // 날짜 포맷 헬퍼 함수: YYYY.MM.DD
@@ -234,24 +344,18 @@
       return `${year}.${month}.${day}`;
     };
     
-    // 작성일 포맷 헬퍼 함수
+    // 작성일 포맷 헬퍼 함수 (체크리스트용)
     const formatCreatedAt = (createdAt: any): string => {
-      if (!createdAt) return '';
-      
-      let date: Date | null = null;
-      
-      // Firestore Timestamp인 경우
-      if (createdAt && typeof createdAt.toDate === 'function') {
-        date = createdAt.toDate();
-      } else if (createdAt instanceof Date) {
-        date = createdAt;
-      } else if (typeof createdAt === 'string') {
-        date = new Date(createdAt);
-      }
-      
-      if (!date || isNaN(date.getTime())) return '';
-      
+      const date = toDate(createdAt);
+      if (!date) return '';
       return formatDate(date);
+    };
+
+    // 템플릿 작성일 포맷 헬퍼 함수 (템플릿용 - formatTemplateDate 사용)
+    const formatTemplateCreatedAt = (createdAt: any): string => {
+      const date = toDate(createdAt);
+      if (!date) return '';
+      return formatTemplateDate(date);
     };
     
     // 종료일 포맷 헬퍼 함수
@@ -327,11 +431,17 @@
     
     // list computed: members에 currentUser.uid가 포함된 체크리스트만 필터링
     const list = computed(() => {
-      if (!currentUser.value) return [];
-      const userId = currentUser.value.uid;
+      if (!currentUser.value) {
+        return [];
+      }
       
-      return checklists.value
+      const userId = currentUser.value.uid;
+      const checklistsArray = Array.isArray(checklists.value) ? checklists.value : [];
+      
+      const filtered = checklistsArray
         .filter((checklist) => {
+          if (!checklist || !checklist.id) return false;
+          
           // members 배열에 userId가 포함되어 있는지 확인
           if (!checklist.members || !Array.isArray(checklist.members)) return false;
           
@@ -350,17 +460,23 @@
             id: checklist.id,
           };
         });
+      
+      return filtered;
     });
 
     // myList: ownerId === currentUser.uid 인 체크리스트만 포함
     // 기본 todo는 myList에만 포함되고 sharedList에는 절대 포함되지 않는다
     const myList = computed(() => {
-      if (!currentUser.value) return [];
+      if (!currentUser.value) {
+        return [];
+      }
+      
       const userId = currentUser.value.uid;
+      const listArray = Array.isArray(list.value) ? list.value : [];
       
       // ownerId === currentUser.uid 인 체크리스트만 필터링
-      const ownerChecklists = list.value.filter((item) => {
-        return item.ownerId === userId;
+      const ownerChecklists = listArray.filter((item) => {
+        return item && item.ownerId === userId;
       });
       
       // 기본 todo 체크리스트 (여러 개가 있어도 가장 오래된 1개만 사용)
@@ -415,10 +531,15 @@
     // 기본 todo는 절대 포함되지 않음
     // progress === 100인 체크리스트는 제외
     const sharedList = computed(() => {
-      if (!currentUser.value) return [];
-      const userId = currentUser.value.uid;
+      if (!currentUser.value) {
+        return [];
+      }
       
-      const shared = list.value.filter((item) => {
+      const userId = currentUser.value.uid;
+      const listArray = Array.isArray(list.value) ? list.value : [];
+      
+      const shared = listArray.filter((item) => {
+        if (!item || !item.id) return false;
         // 기본 todo 체크리스트는 절대 공유 영역에 포함되지 않음
         if (item.isDefault === true) return false;
         
@@ -460,41 +581,175 @@
 
     // 홈 스와이프 체크리스트 데이터
     // 노출 규칙:
-    // 1. myList 중 기본 todo 카드가 항상 가장 먼저 노출
-    // 2. 그 다음에 sharedList 카드들이 노출
-    // 3. 완료된 체크리스트(progress === 100)는 제외됨 (이미 myList와 sharedList에서 필터링됨)
+    // 1. myList의 모든 항목 포함 (기본 todo + 일반 체크리스트)
+    // 2. sharedList의 모든 항목 포함
+    // 3. myList와 sharedList는 OR 조건 (하나라도 존재하면 노출)
     const homeChecklists = computed(() => {
-      const result = [];
+      // myList와 sharedList가 배열인지 확인하고 기본값 설정
+      const mine = Array.isArray(myList.value) ? myList.value : [];
+      const shared = Array.isArray(sharedList.value) ? sharedList.value : [];
       
-      // 1. myList 중 기본 todo 카드 (항상 첫 번째)
-      const defaultTodo = myList.value.find(item => item.isDefault === true);
-      if (defaultTodo) {
-        result.push(defaultTodo);
-      }
-      
-      // 2. sharedList 카드들
-      sharedList.value.forEach((item) => {
-        result.push(item);
-      });
-      
-      return result;
+      // myList와 sharedList를 단순 병합 (OR 조건)
+      return [...mine, ...shared];
     });
     
-    // 데이터 로드 및 초기 애니메이션
-    onMounted(async () => {
-      if (currentUser.value) {
-        // 내 체크리스트와 공유 체크리스트 모두 로드
-        await loadMyChecklists(false); // 완료되지 않은 체크리스트만
-        await loadSharedChecklists(false); // 완료되지 않은 체크리스트만
+    // ==================== 데이터 로딩 함수 정의 ====================
+    
+    // ============================================================
+    // 섹션 1: 최근 템플릿 로드 함수
+    // ============================================================
+    // - Public 데이터: 로그인 여부와 무관하게 public 템플릿만 조회
+    // - currentUser 의존성 없음 (독립 실행)
+    // - onMounted에서만 호출됨
+    // - 다른 섹션과 독립적으로 동작
+    // 
+    // 조회 조건:
+    // - visibility === "public" 인 템플릿만 조회
+    // - 최신순(createdAt desc)
+    // - 최대 3개 표시
+    const loadRecentTemplates = async () => {
+      loadingTemplates.value = true;
+      try {
+        console.log("[HOME] loadRecentTemplates start");
+        const { getTemplates } = await import("@/services/templates");
+        
+        // visibility === "public" 인 템플릿만 조회 (최신순)
+        const publicTemplates = await getTemplates(
+          { visibility: "public" },
+          "createdAt",
+          "desc"
+        );
+        
+        // 실제 쿼리 결과 개수 확인
+        const queryResultCount = Array.isArray(publicTemplates) ? publicTemplates.length : 0;
+        console.log("[HOME] loadRecentTemplates query result:", queryResultCount, "templates (visibility: public)");
+        
+        // 최대 3개만 표시
+        const templatesArray = Array.isArray(publicTemplates) ? publicTemplates : [];
+        templates.value = templatesArray.slice(0, 3);
+        const displayCount = templates.value.length;
+        
+        // 작성자 이름 로드 (템플릿이 있는 경우만)
+        const ownerIds = templates.value.map((tpl) => tpl?.ownerId).filter(Boolean);
+        if (ownerIds.length > 0) {
+          await loadAuthorNames(ownerIds);
+        }
+        
+        console.log("[HOME] loadRecentTemplates done: query=" + queryResultCount + ", display=" + displayCount);
+        
+        // 쿼리 결과가 0개인 경우에만 경고 (정상 상태일 수 있음)
+        if (queryResultCount === 0) {
+          console.warn("[HOME] loadRecentTemplates: Firestore에 public 템플릿이 0개입니다. visibility='public'인 템플릿이 있는지 확인하세요.");
+        }
+      } catch (err: any) {
+        console.error("[HOME] loadRecentTemplates failed:", err?.message || err);
+        templates.value = [];
+      } finally {
+        loadingTemplates.value = false;
+      }
+    };
+
+    // ============================================================
+    // 섹션 2: 최근 게시글 로드 함수
+    // ============================================================
+    // - Public 데이터: 로그인 여부와 무관하게 public 게시글만 조회
+    // - currentUser 의존성 없음 (독립 실행)
+    // - onMounted에서만 호출됨
+    // - 다른 섹션과 독립적으로 동작
+    const loadRecentBoards = async () => {
+      loadingBoards.value = true;
+      try {
+        console.log("[HOME] loadRecentBoards start");
+        await loadPosts(undefined, 5); // limit(5) 적용 (최근 게시글 5개)
+        const count = recentPostsData.value.length;
+        console.log("[HOME] loadRecentBoards done:", count);
+        if (count === 0) {
+          console.warn("[HOME] loadRecentBoards: 게시글이 0개입니다. Firestore에 데이터가 있는지 확인하세요.");
+        }
+      } catch (err: any) {
+        console.error("[HOME] loadRecentBoards failed:", err?.message || err);
+        // 에러 발생 시에도 빈 배열로 설정하여 UI가 깨지지 않도록 함
+        recentPostsData.value = [];
+      } finally {
+        loadingBoards.value = false;
+      }
+    };
+
+    // ============================================================
+    // 섹션 3: 내 체크리스트 로드 함수
+    // ============================================================
+    // - Private 데이터: 로그인 상태(currentUser 존재)일 때만 로드
+    // - currentUser 의존성 있음 (watch에서 호출됨)
+    // - watch(currentUser)에서만 호출됨
+    // - 다른 섹션과 독립적으로 동작
+    const loadChecklists = async () => {
+      // currentUser가 없으면 체크리스트 로드 불가
+      if (!currentUser.value) {
+        console.info("[HOME] loadChecklists: currentUser not ready → skip");
+        return;
+      }
+      
+      console.log("[HOME] loadChecklists start");
+      
+      try {
+        await Promise.all([
+          loadMyChecklists(false),
+          loadSharedChecklists(false)
+        ]);
         
         // 첫 번째 카드가 기본 todo가 아니면 애니메이션 시작
         setTimeout(() => {
-          if (homeChecklists.value.length > 0 && !homeChecklists.value[0]?.isDefault) {
+          if (homeChecklists.value && homeChecklists.value.length > 0 && !homeChecklists.value[0]?.isDefault) {
             startProgressAnimation(homeChecklists.value[0].id);
           }
         }, 100);
+        
+        console.log("[HOME] loadChecklists done");
+      } catch (err: any) {
+        console.error("[HOME] loadChecklists failed:", err?.message || err);
       }
+    };
+    
+    // ==================== Watch & Lifecycle ====================
+    
+    // ============================================================
+    // Public 데이터 로드 (로그인 불필요)
+    // ============================================================
+    // 섹션 1: 최근 템플릿 - 로그인 여부와 무관하게 public 템플릿 로드
+    // 섹션 2: 최근 게시글 - 로그인 여부와 무관하게 public 게시글 로드
+    // - currentUser 의존성 없음 (독립 실행)
+    // - onMounted에서만 실행
+    onMounted(() => {
+      loadRecentTemplates();
+      loadRecentBoards();
     });
+    
+    // ============================================================
+    // 섹션 3: 내 체크리스트 (Private 데이터)
+    // ============================================================
+    // - 로그인 상태(currentUser 존재)일 때만 로드
+    // - currentUser 의존성 있음
+    // - watch(currentUser)에서만 실행
+    watch(
+      () => currentUser.value,
+      (user, prevUser) => {
+        // currentUser가 없으면 체크리스트 로드 스킵
+        if (!user) {
+          console.info("[HOME] currentUser not ready → skip load checklists");
+          return;
+        }
+        
+        // 계정 전환 감지
+        if (prevUser && prevUser.uid !== user.uid) {
+          const { resetChecklists } = useChecklists();
+          resetChecklists();
+        }
+        
+        // currentUser 확정 후 체크리스트만 로드
+        loadChecklists();
+      },
+      { immediate: true }
+    );
 
 
 
@@ -504,6 +759,16 @@
         return animatedProgress.value[id];
       }
       return '-';
+    };
+
+    // 애니메이션된 진행률 가져오기 (템플릿에서 사용)
+    const getAnimatedProgress = (id: string): number => {
+      if (animatedProgress.value[id] !== undefined) {
+        return animatedProgress.value[id];
+      }
+      // 애니메이션 값이 없으면 실제 progress 값 반환
+      const item = homeChecklists.value.find(item => item.id === id);
+      return item?.progress || 0;
     };
 
     // 진행률 변동 추적 (1일 단위)
@@ -615,210 +880,54 @@
       }
     };
 
-    // 템플릿 데이터 (TemplatesList.vue와 동일)
-    const templates = ref([
-      {
-        id: "tpl1",
-        title: "여행 준비 템플릿",
-        category: "여행",
-        items: 12,
-        used: 82,
-        author: "김철수",
-        likes: 45,
-        createdAt: new Date(), // 오늘
-      },
-      {
-        id: "tpl2",
-        title: "장보기 기본 템플릿",
-        category: "생활",
-        items: 8,
-        used: 154,
-        author: "이영희",
-        likes: 120,
-        createdAt: new Date(2024, 11, 20), // 2024-12-20
-      },
-      {
-        id: "tpl3",
-        title: "캠핑 체크리스트",
-        category: "여행",
-        items: 15,
-        used: 40,
-        author: "박민수",
-        likes: 28,
-        createdAt: new Date(2025, 1, 5), // 2025-02-05
-      },
-      {
-        id: "tpl4",
-        title: "명절 준비 체크리스트",
-        category: "집안일",
-        items: 20,
-        used: 65,
-        author: "최지영",
-        likes: 52,
-        createdAt: new Date(2024, 10, 25), // 2024-11-25
-      },
-      {
-        id: "tpl5",
-        title: "출장 준비물",
-        category: "업무",
-        items: 10,
-        used: 120,
-        author: "정대현",
-        likes: 89,
-        createdAt: new Date(2024, 9, 10), // 2024-10-10
-      },
-      {
-        id: "tpl6",
-        title: "운동 루틴 체크리스트",
-        category: "기타",
-        items: 7,
-        used: 95,
-        author: "강수진",
-        likes: 67,
-        createdAt: new Date(2025, 0, 8), // 2025-01-08
-      },
-      {
-        id: "tpl7",
-        title: "결혼식 준비 리스트",
-        category: "기타",
-        items: 30,
-        used: 25,
-        author: "윤서연",
-        likes: 15,
-        createdAt: new Date(2024, 11, 30), // 2024-12-30
-      },
-      {
-        id: "tpl8",
-        title: "이사 준비 체크리스트",
-        category: "생활",
-        items: 25,
-        used: 45,
-        author: "홍길동",
-        likes: 33,
-        createdAt: new Date(2025, 1, 12), // 2025-02-12
-      },
-      {
-        id: "tpl9",
-        title: "해외여행 필수품",
-        category: "여행",
-        items: 18,
-        used: 88,
-        author: "김민지",
-        likes: 76,
-        createdAt: new Date(2024, 11, 5), // 2024-12-05
-      },
-      {
-        id: "tpl10",
-        title: "프로젝트 관리 템플릿",
-        category: "업무",
-        items: 14,
-        used: 200,
-        author: "이준호",
-        likes: 145,
-        createdAt: new Date(2024, 8, 15), // 2024-09-15
-      },
-      {
-        id: "tpl11",
-        title: "주간 쇼핑 리스트",
-        category: "쇼핑",
-        items: 12,
-        used: 300,
-        author: "박지은",
-        likes: 210,
-        createdAt: new Date(2024, 7, 20), // 2024-08-20
-      },
-      {
-        id: "tpl12",
-        title: "생일파티 준비",
-        category: "기타",
-        items: 15,
-        used: 55,
-        author: "송하늘",
-        likes: 42,
-        createdAt: new Date(2025, 0, 22), // 2025-01-22
-      },
-    ]);
-
-    // 게시글 데이터 (PostListView.vue와 동일)
-    const posts = ref([
-      {
-        id: "p1",
-        author: "Aiden",
-        title: "캠핑갈 때 꼭 필요한 체크리스트 공유!",
-        content: "이번에 캠핑 다녀오면서 정리한 리스트입니다. 참고해서 사용하세요!",
-        image: "https://placehold.co/600x400",
-        createdAt: Date.now() - 1000 * 60 * 10,
-        likes: 12,
-        liked: false,
-        comments: [
-          {
-            id: "c1",
-            author: "Kate",
-            text: "와 너무 유용하네요!",
-            createdAt: Date.now() - 1000 * 60 * 5,
-          },
-        ],
-      },
-      {
-        id: "p2",
-        author: "Kate",
-        title: "속초 여행 체크리스트 공유",
-        content: "속초 여행을 다녀오면서 만든 체크리스트를 공유합니다.",
-        image: null,
-        createdAt: Date.now() - 1000 * 60 * 60 * 2,
-        likes: 8,
-        liked: true,
-        comments: [],
-      },
-      {
-        id: "p3",
-        author: "John",
-        title: "명절 준비 체크 포인트",
-        content: "명절 준비할 때 놓치기 쉬운 것들을 정리했습니다.",
-        image: null,
-        createdAt: Date.now() - 1000 * 60 * 60 * 24,
-        likes: 15,
-        liked: false,
-        comments: [
-          {
-            id: "c2",
-            author: "Aiden",
-            text: "정말 도움되네요!",
-            createdAt: Date.now() - 1000 * 60 * 60 * 20,
-          },
-        ],
-      },
-    ]);
-
-    // 최근 템플릿 3개 (생성일 기준 최신순)
+    // ==================== 상태 선언 ====================
+    
+    // 템플릿 데이터
+    const templates = ref<Template[]>([]);
+    const loadingTemplates = ref(false);
+    
+    // 게시글 데이터 (usePosts composable에서 관리)
+    const { posts: recentPostsData, loadPosts } = usePosts();
+    const loadingBoards = ref(false);
+    
+    // ==================== Computed ====================
+    
+    // 최근 템플릿 3개
     const recentTemplates = computed(() => {
-      return [...templates.value]
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-        .slice(0, 3);
+      return Array.isArray(templates.value) ? templates.value : [];
     });
 
-    // 최근 게시글 3개 (생성일 기준 최신순)
-    const recentPosts = computed(() => {
-      return [...posts.value]
-        .sort((a, b) => b.createdAt - a.createdAt)
-        .slice(0, 3);
+    // 최근 게시글 3개 (posts 컬렉션 사용)
+    const recentBoards = computed(() => {
+      const postsArray = Array.isArray(recentPostsData.value) ? recentPostsData.value : [];
+      return postsArray.slice(0, 3); // 최대 3개만 표시
     });
 
+    // 게시글 카테고리 라벨
+    const getPostCategoryLabel = (category: "notice" | "free" | "review"): string => {
+      const labels: Record<"notice" | "free" | "review", string> = {
+        notice: "공지",
+        free: "자유",
+        review: "후기",
+      };
+      return labels[category] || category;
+    };
 
-    // 3일 이내인지 확인 (Date 객체용)
-    const isNewTemplate = (date: Date) => {
+    // 게시글 작성일 포맷팅
+    const formatPostCreatedAt = (createdAt: any): string => {
+      if (!createdAt) return '';
+      const date = toDate(createdAt);
+      if (!date) return '';
+      return formatTemplateDate(date);
+    };
+
+    // 게시글 NEW 뱃지 판별 (createdAt 기준)
+    const isNewPost = (createdAt: any): boolean => {
+      if (!createdAt) return false;
+      const date = toDate(createdAt);
       if (!date) return false;
       const now = new Date();
       const diffTime = now.getTime() - date.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays <= 3;
-    };
-
-    // 3일 이내인지 확인 (timestamp용)
-    const isNewPost = (timestamp: number) => {
-      if (!timestamp) return false;
-      const now = Date.now();
-      const diffTime = now - timestamp;
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       return diffDays <= 3;
     };

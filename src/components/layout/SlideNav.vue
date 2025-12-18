@@ -121,6 +121,9 @@ const logout = async () => {
         <router-link to="/lists" class="menu-item" @click="close">나의 체크리스트</router-link>
         <router-link to="/templates" class="menu-item" @click="close">템플릿</router-link>
         <router-link to="/posts" class="menu-item" @click="close">게시글·공유</router-link>
+        <router-link to="/notifications" class="menu-item" @click="close">
+          <i class="bi bi-bell mr-2"></i>내 알람
+        </router-link>
         <router-link to="/notices" class="menu-item" @click="close">공지사항</router-link>
       </nav>
 

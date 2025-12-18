@@ -1,7 +1,7 @@
 <template>
-  <div class="checklist-detail-page flex flex-col overflow-hidden bg-gray-50">
+  <div class="checklist-detail-page flex flex-col overflow-hidden bg-gray-50 checklist-detail-wrapper">
     <!-- 로딩 상태 -->
-    <div v-if="loading" class="flex items-center justify-center flex-1">
+    <div v-if="loading" class="flex items-center justify-center flex-1 checklist-detail-loading">
       <div class="text-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <p class="text-gray-600">로딩 중...</p>
@@ -9,10 +9,10 @@
     </div>
 
     <!-- 에러 상태 -->
-    <div v-else-if="error" class="flex items-center justify-center flex-1">
+    <div v-else-if="error" class="flex items-center justify-center flex-1 checklist-detail-error">
       <div class="text-center">
         <p class="text-red-600 mb-4">{{ error }}</p>
-        <button @click="loadChecklistData" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button @click="loadChecklistData" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 checklist-detail-error-retry">
           다시 시도
         </button>
       </div>
@@ -21,25 +21,25 @@
     <!-- 정상 상태 -->
     <template v-else-if="checklist">
     <!-- 1. 상단 헤더 -->
-    <header class="flex items-center px-4 h-14 border-b bg-white flex-shrink-0 z-10">
-      <button @click="router.back()" class="mr-3 text-xl text-gray-700">
+    <header class="flex items-center px-4 h-14 border-b bg-white flex-shrink-0 z-10 checklist-detail-header">
+      <button @click="router.back()" class="mr-3 text-xl text-gray-700 checklist-detail-back-btn">
         <i class="bi bi-arrow-left"></i>
       </button>
-      <h1 class="text-base font-semibold truncate flex-1">
+      <h1 class="text-base font-semibold truncate flex-1 checklist-detail-title">
         {{ checklistTitle }}
       </h1>
       <!-- 오너모드 버튼 (오너 또는 admin일 때만 표시) -->
       <button 
         v-if="isOwnerOrAdmin"
         @click="openBottomSheet('ownerMode')"
-        class="ml-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+        class="ml-2 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors checklist-detail-owner-btn"
       >
         {{ isOwner ? '오너모드' : '관리모드' }}
       </button>
       <!-- 정렬 버튼 (오너/비오너 모두 표시) -->
       <button
         @click="openBottomSheet('sort')"
-        class="ml-2 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+        class="ml-2 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors checklist-detail-sort-btn"
         title="정렬"
       >
         <i class="bi bi-sort-down text-xl"></i>
@@ -898,6 +898,27 @@
             </div>
           </section>
 
+          <!-- 템플릿 불러오기 버튼 -->
+          <section class="mb-6">
+            <button
+              @click="openBottomSheet('templateLoad')"
+              class="w-full py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold flex items-center justify-center gap-2 mb-3"
+            >
+              <i class="bi bi-collection"></i>
+              템플릿 불러오기
+            </button>
+            <!-- 템플릿으로 저장 버튼 (오너만) -->
+            <button
+              v-if="isOwner"
+              @click="handleSaveAsTemplate"
+              :disabled="isSavingTemplate"
+              class="w-full py-3 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <i class="bi bi-save"></i>
+              {{ isSavingTemplate ? '저장 중...' : '템플릿으로 저장' }}
+            </button>
+          </section>
+
           <!-- 체크리스트 삭제 버튼 -->
           <section class="pt-4 border-t border-gray-200">
             <button
@@ -1138,6 +1159,64 @@
         </div>
       </div>
     </transition>
+
+    <!-- 템플릿 불러오기 Bottom Sheet -->
+    <transition name="slide-up">
+      <div
+        v-if="activeBottomSheet === 'templateLoad'"
+        class="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-xl z-50 max-h-[80vh] overflow-y-auto"
+        @click.stop
+      >
+        <div class="p-6">
+          <!-- 헤더 -->
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-800">템플릿 불러오기</h2>
+            <button
+              @click="closeBottomSheet"
+              class="p-2 text-gray-500 hover:text-gray-700 rounded-lg transition-colors"
+              aria-label="닫기"
+            >
+              <i class="bi bi-x-lg text-xl"></i>
+            </button>
+          </div>
+
+          <!-- 로딩 상태 -->
+          <div v-if="loadingTemplates" class="flex items-center justify-center py-12">
+            <div class="text-center">
+              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p class="text-gray-600">템플릿 로딩 중...</p>
+            </div>
+          </div>
+
+          <!-- 템플릿 리스트 -->
+          <div v-else-if="availableTemplates.length > 0" class="space-y-2">
+            <div
+              v-for="tpl in availableTemplates"
+              :key="tpl.id"
+              @click="handleLoadTemplate(tpl.id)"
+              class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-800 mb-1">{{ tpl.title }}</h3>
+                  <p v-if="tpl.description" class="text-sm text-gray-600 mb-2">{{ tpl.description }}</p>
+                  <div class="flex items-center gap-4 text-xs text-gray-500">
+                    <span>{{ tpl.items.length }}개 항목</span>
+                    <span>{{ tpl.category }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 템플릿 없을 때 -->
+          <div v-else class="text-center py-12">
+            <i class="bi bi-inbox text-4xl text-gray-400 mb-4"></i>
+            <p class="text-gray-600">사용 가능한 템플릿이 없습니다.</p>
+          </div>
+        </div>
+      </div>
+    </transition>
     </template>
   </div>
 </template>
@@ -1146,6 +1225,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuth } from "@/composables/useAuth";
+import { useTemplates } from "@/composables/useTemplates";
 import { getChecklist, updateChecklist } from "@/services/checklists";
 import { getItems, createItem, deleteItem as deleteItemService, updateItem } from "@/services/items";
 import { getChats, createChat } from "@/services/chats";
@@ -1160,9 +1240,10 @@ import { db } from "@/firebase/firebase";
 const router = useRouter();
 const route = useRoute();
 const { currentUser } = useAuth();
+const { templates: availableTemplates, loading: loadingTemplates, loadTemplates: loadTemplatesList, appendTemplateItems } = useTemplates();
 
 // 바텀시트 단일 활성 상태 (single source of truth)
-type BottomSheetType = 'none' | 'sort' | 'settings' | 'memberColor' | 'itemSettings' | 'ownerMode' | 'invite';
+type BottomSheetType = 'none' | 'sort' | 'settings' | 'memberColor' | 'itemSettings' | 'ownerMode' | 'invite' | 'templateLoad';
 const activeBottomSheet = ref<BottomSheetType>('none');
 
 // 현재 선택된 항목 인덱스 (항목 설정 바텀시트용)
@@ -1422,6 +1503,11 @@ const openBottomSheet = (type: BottomSheetType) => {
       editForm.value.dueDate = '';
     }
   }
+  
+  // 템플릿 불러오기 바텀시트 열 때 템플릿 목록 로드
+  if (type === 'templateLoad') {
+    loadTemplatesList({ visibility: 'public' }, 'createdAt', 'desc');
+  }
 };
 
 // 바텀시트 닫기 (단일 함수)
@@ -1480,6 +1566,99 @@ const handleDeleteChecklist = () => {
 // 종료일 제거
 const clearDueDate = () => {
   editForm.value.dueDate = '';
+};
+
+// 템플릿 불러오기 처리
+const handleLoadTemplate = async (templateId: string) => {
+  if (!checklist.value || !groups.value || groups.value.length === 0) {
+    alert('체크리스트를 불러올 수 없습니다.');
+    return;
+  }
+  
+  // 기본 그룹 선택 (첫 번째 그룹)
+  const defaultGroupId = groups.value[0].groupId;
+  
+  try {
+    await appendTemplateItems(templateId, checklist.value.id, defaultGroupId);
+    alert('템플릿 항목이 추가되었습니다.');
+    closeBottomSheet();
+    // 체크리스트 데이터 다시 로드
+    await loadChecklistData();
+  } catch (err) {
+    console.error('템플릿 불러오기 실패:', err);
+    alert('템플릿 불러오기에 실패했습니다.');
+  }
+};
+
+// 템플릿으로 저장 처리
+const isSavingTemplate = ref(false);
+const { addTemplate: addTemplateToStore } = useTemplates();
+const handleSaveAsTemplate = async () => {
+  if (!checklist.value || !currentUser.value) {
+    alert('체크리스트를 불러올 수 없습니다.');
+    return;
+  }
+  
+  if (!checklist.value.groups || checklist.value.groups.length === 0) {
+    alert('저장할 그룹이 없습니다.');
+    return;
+  }
+  
+  if (checklistItems.value.length === 0) {
+    alert('저장할 항목이 없습니다.');
+    return;
+  }
+  
+  const confirmed = confirm('이 체크리스트를 템플릿으로 저장하시겠습니까?');
+  if (!confirmed) return;
+  
+  isSavingTemplate.value = true;
+  try {
+    // 체크리스트의 groups를 템플릿 groups로 변환 (id는 새로 생성, 이름과 order는 그대로 복사)
+    const templateGroups = checklist.value.groups.map((group) => ({
+      groupId: crypto.randomUUID(), // 새 ID 생성
+      groupName: group.groupName, // 이름은 그대로 복사
+      order: group.order, // order도 그대로 복사
+    }));
+    
+    // groupId 매핑 생성 (체크리스트 groupId -> 템플릿 groupId)
+    const groupIdMap = new Map<string, string>();
+    checklist.value.groups.forEach((checklistGroup, index) => {
+      groupIdMap.set(checklistGroup.groupId, templateGroups[index].groupId);
+    });
+    
+    // 체크리스트의 items를 템플릿 items로 변환 (isCompleted는 모두 false, groupId 매핑 적용)
+    const templateItems = checklistItems.value.map((item) => {
+      const templateGroupId = groupIdMap.get(item.groupId);
+      if (!templateGroupId) {
+        console.warn(`체크리스트 항목의 groupId(${item.groupId})를 찾을 수 없습니다.`);
+      }
+      return {
+        title: item.title,
+        isCompleted: false, // 항상 false로 초기화
+        groupId: templateGroupId || templateGroups[0].groupId, // 매핑된 groupId 사용, 없으면 첫 번째 그룹
+      };
+    });
+    
+    await addTemplateToStore({
+      title: checklist.value.title,
+      description: checklist.value.description || '',
+      category: '기타', // 기본값, 나중에 카테고리 선택 기능 추가 가능
+      ownerId: currentUser.value.uid,
+      // visibility는 createTemplate에서 "public"으로 강제 설정됨
+      sourceChecklistId: checklist.value.id, // 원본 체크리스트 ID 저장
+      groups: templateGroups,
+      items: templateItems,
+    });
+    
+    alert('템플릿으로 저장되었습니다.');
+    closeBottomSheet();
+  } catch (err) {
+    console.error('템플릿 저장 실패:', err);
+    alert('템플릿 저장에 실패했습니다.');
+  } finally {
+    isSavingTemplate.value = false;
+  }
 };
 
 // 체크리스트 변경사항 저장
@@ -2127,8 +2306,8 @@ const getMemberName = (userId: string | null | undefined): string => {
   }
   
   const info = memberInfoCache.value.get(userId);
-  if (info && info.nickname) {
-    return info.nickname;
+  if (info && info.displayName) {
+    return info.displayName;
   }
   // 캐시에 없으면 로딩 중 표시 (프로필이 로드되면 자동 업데이트됨)
   return '로딩 중...';
@@ -2186,24 +2365,37 @@ const loadMemberProfiles = async () => {
     }
     
     try {
-      const profile = await getUserProfile(userId);
-      if (profile) {
+      // 현재 로그인한 사용자 ID 전달 (본인 프로필 조회 시 필요)
+      const currentUserId = currentUser.value?.uid;
+      const profile = await getUserProfile(userId, currentUserId);
+      
+      if (profile && profile.displayName) {
         memberInfoCache.value.set(userId, {
           userId,
-          nickname: profile.nickname || '사용자',
+          nickname: profile.displayName,
           color: getMemberColor(userId),
         });
       } else {
-        // 프로필이 없으면 기본값 사용 (이름은 '사용자'로 표시)
+        // 프로필이 없거나 공개되지 않은 경우 기본값 사용 (이름은 '사용자'로 표시)
         memberInfoCache.value.set(userId, {
           userId,
           nickname: '사용자',
           color: getMemberColor(userId),
         });
       }
-    } catch (err) {
+    } catch (err: any) {
+      // 권한 오류는 공개되지 않은 프로필일 수 있으므로 정상적인 상황으로 처리
+      if (err?.code === 'permission-denied') {
+        // 공개되지 않은 프로필이므로 기본값 사용 (에러 로그 없이 처리)
+        memberInfoCache.value.set(userId, {
+          userId,
+          nickname: '사용자',
+          color: getMemberColor(userId),
+        });
+        return;
+      }
       console.error(`[ChecklistDetailView] 멤버 ${userId} 프로필 로드 실패:`, err);
-      // 실패 시 기본값 사용 (이름은 '사용자'로 표시)
+      // 네트워크 오류 등도 fallback 처리하여 UI 안정성 유지
       memberInfoCache.value.set(userId, {
         userId,
         nickname: '사용자',

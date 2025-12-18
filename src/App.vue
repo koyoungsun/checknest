@@ -7,12 +7,15 @@ import AppHeader from "@/components/layout/AppHeader.vue";
 import SlideNav from "@/components/layout/SlideNav.vue";
 import BottomNav from "@/components/layout/BottomNav.vue";
 import BottomSheet from "@/components/common/BottomSheet.vue";
+import LoginPromptModal from "@/components/common/LoginPromptModal.vue";
 
 const route = useRoute();
 const {
   isOpen: sheetOpen,
+  showLoginPrompt,
   open: openSheet,
   close: closeSheet,
+  closeLoginPrompt,
   goToChecklistCreate,
   goToTemplateCreate,
   goToPostWrite,
@@ -65,6 +68,12 @@ const hideHeader = computed(() => route.meta.hideHeader === true);
       @create-checklist="goToChecklistCreate"
       @create-template="goToTemplateCreate"
       @write-post="goToPostWrite"
+    />
+
+    <!-- === 로그인 유도 모달 === -->
+    <LoginPromptModal
+      :open="showLoginPrompt"
+      @close="closeLoginPrompt"
     />
   </div>
 </template>
