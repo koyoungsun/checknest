@@ -24,16 +24,14 @@
           >
             <!-- 작성자 정보 -->
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+              <p class="text-sm font-semibold text-gray-900">
                 <i class="bi bi-person-fill text-gray-600"></i>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-gray-900">{{ post.authorName }}</p>
-                <p class="text-xs text-gray-400 flex items-center gap-1">
-                  <i class="bi bi-clock text-[10px]"></i>
-                  {{ formatRelativeTime(toDate(post.createdAt) || new Date()) }}
-                </p>
-              </div>
+                {{ post.authorName }}
+              </p>
+              <span class="text-xs text-gray-400 flex items-center gap-1">
+                <i class="bi bi-clock text-[10px]"></i>
+                {{ formatRelativeTime(toDate(post.createdAt) || new Date()) }}
+              </span>
             </div>
 
             <!-- 제목 -->
@@ -48,14 +46,12 @@
 
             <!-- 좋아요 / 댓글 수 -->
             <div class="flex items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
-              <div class="flex items-center gap-1">
-                <i class="bi bi-heart"></i>
-                <span>{{ post.likeCount || 0 }}</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <i class="bi bi-chat"></i>
-                <span>{{ post.commentCount || 0 }}</span>
-              </div>
+              <span class="flex items-center gap-1">
+                <i class="bi bi-heart"></i> <span>{{ post.likeCount || 0 }}</span>
+              </span>
+              <span class="flex items-center gap-1">
+                <i class="bi bi-chat"></i> <span>{{ post.commentCount || 0 }}</span>
+              </span>
               <div class="ml-auto flex items-center gap-1">
                 <i class="bi bi-chevron-right text-gray-400"></i>
               </div>

@@ -120,47 +120,28 @@ const cancel = () => {
 
 <style scoped>
 .content-wrapper {
-  padding: 16px;
+  padding:16px;
 }
 
 .input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 0.9rem;
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid #d1d5db; font-size:0.9rem;
 }
 .input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px #2563eb20;
+  outline:none; border-color:#2563eb; box-shadow:0 0 0 1px #2563eb20;
 }
 
 .button-group {
-  display: flex;
-  gap: 4px;
-  margin-top: 24px;
+  display:flex; gap:4px; margin-top:24px;
 }
 
 .btn-primary {
-  background: #2563eb;
-  color: #fff;
-  height: 50px;
-  width: 50%;
-  border-radius: 10px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
+  background:#2563eb; color:#fff; height:50px; width:50%;
+  border-radius:10px; font-weight:600; border:none; cursor:pointer;
 }
 
 .btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
-  height: 50px;
-  width: 50%;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  border: none;
-  cursor: pointer;
+  background:#e5e7eb; color:#374151; height:50px; width:50%;
+  border-radius:10px; font-size:0.9rem; border:none; cursor:pointer;
 }
 </style>

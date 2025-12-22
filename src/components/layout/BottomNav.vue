@@ -39,38 +39,21 @@ const handleFabClick = () => {
 <style scoped>
 .bottom-nav {
   @apply fixed bottom-0 left-0 w-full z-30 h-[60px] flex justify-around items-center;
-  background: linear-gradient(to bottom, #e55a2b, var(--color-primary, #ff6b35));
-  border: 0;
-  border-radius: 2px;
+  background:linear-gradient(to bottom, #000000, var(--color-primary, #000000));
+  border:0; border-radius:2px;
 }
 
 .nav-item {
   @apply flex flex-col items-center text-xs;
-  color: #fff;
-  
-  i {
-    color: #fff;
-  }
-  
-  span {
-    color: #fff;
-  }
+  color:#fff;
+  i {color:#fff;}
+  span {color:#fff;}
 }
 
 .fab-button {
   @apply flex items-center justify-center shadow-lg -mt-8;
-  width: 61px;
-  height: 61px;
-  background-color: transparent;
-  border: 0;
-  border-radius: 2px;
-  padding: 4px;
-  color: #fff;
-  font-size: 24px;
-  
-  i {
-    color: #fff;
-    font-size: 24px;
-  }
+  width:61px; height:61px; background-color:transparent;
+  border:0; border-radius:2px; padding:4px; color:#fff; font-size:24px;
+  i {color:#fff; font-size:24px;}
 }
 </style>

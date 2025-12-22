@@ -543,7 +543,7 @@
               <div class="flex items-center gap-2">
                 <span class="text-xs text-gray-400 font-mono">{{ formatChatTime(chat.createdAt) }}</span>
                 <span class="text-xs text-gray-500 font-medium">{{ getMemberName(chat.userId) }}</span>
-                <span v-if="isPendingMember(chat.userId)" class="text-xs text-orange-500 font-medium">(대기중)</span>
+                <span v-if="isPendingMember(chat.userId)" class="text-xs text-gray-600 font-medium">(대기중)</span>
               </div>
               <div 
                 class="text-sm leading-relaxed"
@@ -1527,7 +1527,7 @@ const colorPresets = [
   '#EC4899', // pink
   '#06B6D4', // cyan
   '#84CC16', // lime
-  '#F97316', // orange
+  '#000000', // black
   '#6366F1', // indigo
 ];
 
@@ -2809,162 +2809,110 @@ const deleteItem = async (index: number) => {
 
 /* 최상위 페이지 컨테이너 */
 .checklist-detail-page {
-  position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  position:relative; flex:1; display:flex; flex-direction:column; overflow:hidden;
 }
 
 /* 최상위 레이아웃 컨테이너 */
 .checklist-detail-layout {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  flex:1; overflow:hidden; display:flex; flex-direction:column; min-height:0;
 }
 
 /* 리스트/채팅 분할 영역 */
 .checklist-detail-split {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 0;
+  flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0;
 }
 
 /* 체크리스트 리스트 영역 */
 .checklist-detail-list {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background-color: #f9fafb;
-  border-bottom: 2px solid #d1d5db;
-  transition: flex-basis 0.3s ease;
+  flex-shrink:0; display:flex; flex-direction:column; overflow:hidden;
+  background-color:#f9fafb; border-bottom:2px solid #d1d5db; transition:flex-basis 0.3s ease;
 }
 
 /* 채팅 열림 상태: 리스트 70% */
 .checklist-detail-list--chat-open {
-  flex-basis: 70%;
+  flex-basis:70%;
 }
 
 /* 채팅 닫힘 상태: 리스트 90% */
 .checklist-detail-list--chat-closed {
-  flex-basis: 90%;
+  flex-basis:90%;
 }
 
 /* 채팅이 없을 때: 리스트 100% */
 .checklist-detail-list:only-child {
-  flex-basis: 100%;
+  flex-basis:100%;
 }
 
 /* 체크리스트 리스트 콘텐츠 영역 (스크롤 가능) */
 .checklist-detail-list-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  min-height: 0;
+  flex:1; overflow-y:auto; padding:1rem; min-height:0;
 }
 
 /* 채팅 영역 */
 .checklist-detail-chat {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background-color: #f3f4f6;
-  border-top: 2px solid #d1d5db;
-  transition: flex-basis 0.3s ease;
+  flex-shrink:0; display:flex; flex-direction:column; overflow:hidden;
+  background-color:#f3f4f6; border-top:2px solid #d1d5db; transition:flex-basis 0.3s ease;
 }
 
 /* 채팅 열림 상태: 채팅 30% */
 .checklist-detail-chat--open {
-  flex-basis: 30%;
+  flex-basis:30%;
 }
 
 /* 채팅 닫힘 상태: 채팅 10% */
 .checklist-detail-chat--closed {
-  flex-basis: 10%;
+  flex-basis:10%;
 }
 
 /* 채팅 래퍼 (열림 상태) */
 .checklist-detail-chat-wrapper {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-  min-height: 0;
+  display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0;
 }
 
 /* 채팅 메시지 영역 (스크롤 가능) */
 .checklist-detail-chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  min-height: 0;
+  flex:1; overflow-y:auto; padding:1rem; min-height:0;
 }
 
 /* 채팅 입력창 영역 (하단 고정) */
 .checklist-detail-chat-input {
-  flex-shrink: 0;
-  padding: 0.75rem;
-  border-top: 1px solid #e5e7eb;
-  background-color: white;
+  flex-shrink:0; padding:0.75rem; border-top:1px solid #e5e7eb; background-color:white;
 }
 
 /* 채팅 토글 버튼 (닫힘 상태) */
 .checklist-detail-chat-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
+  display:flex; align-items:center; justify-content:center; flex:1;
 }
 
 /* page-content padding 강제 제거 (이 페이지 한정) */
-.checklist-detail-page :deep(.page-content),
-.checklist-detail-page.page-content {
-  padding-bottom: 0 !important;
-  padding-top: 0 !important;
+.checklist-detail-page :deep(.page-content), .checklist-detail-page.page-content {
+  padding-bottom:0 !important; padding-top:0 !important;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from {opacity:0;}
+  to {opacity:1;}
 }
 
 @keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from {transform:translateX(100%);}
+  to {transform:translateX(0);}
 }
 
 /* Bottom Sheet 애니메이션 */
-.fade-dimd-enter-active,
-.fade-dimd-leave-active {
-  transition: opacity 0.3s ease;
+.fade-dimd-enter-active, .fade-dimd-leave-active {
+  transition:opacity 0.3s ease;
 }
 
-.fade-dimd-enter-from,
-.fade-dimd-leave-to {
-  opacity: 0;
+.fade-dimd-enter-from, .fade-dimd-leave-to {
+  opacity:0;
 }
 
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: transform 0.3s ease-out;
+.slide-up-enter-active, .slide-up-leave-active {
+  transition:transform 0.3s ease-out;
 }
 
-.slide-up-enter-from,
-.slide-up-leave-to {
-  transform: translateY(100%);
+.slide-up-enter-from, .slide-up-leave-to {
+  transform:translateY(100%);
 }
 </style>

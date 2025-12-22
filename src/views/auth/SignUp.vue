@@ -176,36 +176,22 @@
   
   <style scoped>
   .label {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 4px;
+    display:block; font-size:0.9rem; font-weight:600; margin-bottom:4px;
   }
   
   .input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    outline: none;
-    box-sizing:border-box;
+    width:100%; padding:10px 12px; border:1px solid #d1d5db;
+    border-radius:8px; outline:none; box-sizing:border-box;
   }
   .input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 1px #3b82f6;
+    border-color:#3b82f6; box-shadow:0 0 0 1px #3b82f6;
   }
   
   .btn-primary {
-    background: #2563eb;
-    color: #fff;
-    padding: 12px 0;
-    border-radius: 8px;
-    font-weight: 600;
-    width:100%; height:50px; margin:8px 0 16px;
-    cursor: pointer;
+    background:#2563eb; color:#fff; padding:12px 0; border-radius:8px;
+    font-weight:600; width:100%; height:50px; margin:8px 0 16px; cursor:pointer;
   }
   .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    opacity:0.6; cursor:not-allowed;
   }
   </style>

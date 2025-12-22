@@ -925,12 +925,6 @@ const submit = async () => {
 
   loading.value = true;
   try {
-    // 초대된 멤버 ID 수집 (일촌, 검색으로 추가된 사용자)
-    // TODO: 실제 사용자 ID로 변환 필요 (현재는 더미 데이터)
-    const memberIds: string[] = [];
-    // invitedUsers.value.forEach(user => {
-    //   if (user.id) memberIds.push(user.id);
-    // });
 
     // dueDate 타입 확인 및 정규화
     const dueDateValue = formData.value.dueDate;
@@ -987,11 +981,30 @@ const submit = async () => {
       }
     });
     
-    // groups 배열이 비어있으면 생성 불가
+    // groups 배열이 비어있으면 생성 불가 (기본 그룹이 항상 추가되므로 실제로는 발생하지 않음)
     if (groups.length === 0) {
+      loading.value = false; // 로딩 상태 해제
       alert("최소 1개 이상의 그룹이 필요합니다.");
       return;
     }
+    
+    // title 검증 (이미 위에서 검증했지만 재확인)
+    if (!formData.value.title || !formData.value.title.trim()) {
+      loading.value = false; // 로딩 상태 해제
+      validateStep1();
+      return;
+    }
+    
+    // members 배열: invitedUsers에서 userId 추출하여 객체 배열 형태로 변환
+    const membersArray: Array<{ userId: string; role: 'admin' | 'member' }> = [];
+    invitedUsers.value.forEach(user => {
+      if (user.id && user.id !== currentUser.value?.uid) {
+        membersArray.push({
+          userId: user.id,
+          role: 'member' // 기본 역할은 member
+        });
+      }
+    });
     
     console.log("체크리스트 생성 시작:", {
       title: formData.value.title.trim(),
@@ -999,8 +1012,7 @@ const submit = async () => {
       dueDate: normalizedDueDate,
       dueDateType: typeof normalizedDueDate,
       dueDateIsDate: normalizedDueDate instanceof Date,
-      members: memberIds,
-      rolesEnabled: formData.value.rolesEnabled,
+      members: membersArray,
       groups: groups,
       currentUser: currentUser.value?.uid,
     });
@@ -1012,10 +1024,10 @@ const submit = async () => {
       title: formData.value.title.trim(),
       description: formData.value.description?.trim() || undefined,
       dueDate: normalizedDueDate instanceof Date ? normalizedDueDate : undefined,
-      members: memberIds, // 초대된 멤버 ID 배열
+      members: membersArray.length > 0 ? membersArray : undefined, // 초대된 멤버 배열 (없으면 undefined)
       groups: groups, // 필수 필드: 최소 1개 이상의 그룹
       chatEnabled: true, // V1에서는 채팅을 기본 항상 활성으로 유지
-      maxParticipants: Math.max(1 + memberIds.length, formData.value.maxMembers), // 최초 참여자 수 또는 설정한 최대 인원 중 큰 값
+      maxParticipants: Math.max(1 + membersArray.length, formData.value.maxMembers), // 최초 참여자 수(owner + 초대된 멤버) 또는 설정한 최대 인원 중 큰 값
     });
 
     console.log("체크리스트 생성 성공, ID:", checklistId);
@@ -1056,7 +1068,7 @@ const submit = async () => {
     // 추가 그룹별 항목 저장 (forEach는 async/await를 지원하지 않으므로 for...of 사용)
     for (let groupIndex = 0; groupIndex < formData.value.groups.length; groupIndex++) {
       const group = formData.value.groups[groupIndex];
-      if (group.name.trim()) {
+      if (group && group.name.trim()) {
         const groupId = groups[groupIndex + 1]?.groupId; // groups[0]은 기본 그룹이므로 +1
         if (groupId) {
           const groupItems = group.items
@@ -1182,7 +1194,7 @@ const submit = async () => {
 }
 
 .progress-step.completed:not(:last-child)::after {
-  background: #ff6b35;
+  background: #000000;
 }
 
 .step-number {
@@ -1201,12 +1213,12 @@ const submit = async () => {
 }
 
 .progress-step.active .step-number {
-  background: #ff6b35;
+  background: #000000;
   color: #fff;
 }
 
 .progress-step.completed .step-number {
-  background: #ff6b35;
+  background: #000000;
   color: #fff;
 }
 
@@ -1217,7 +1229,7 @@ const submit = async () => {
 }
 
 .progress-step.active .step-label {
-  color: #ff6b35;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -1230,7 +1242,7 @@ const submit = async () => {
 
 .progress-fill {
   height: 100%;
-  background: #ff6b35;
+  background: #000000;
   transition: width 0.3s ease;
 }
 
@@ -1362,7 +1374,7 @@ const submit = async () => {
 }
 
 input:checked + .slider {
-  background-color: #ff6b35;
+  background-color: #000000;
 }
 
 input:checked + .slider:before {
@@ -1384,7 +1396,7 @@ input:checked + .slider:before {
 
 .btn-primary {
   flex: 1;
-  background: #ff6b35;
+  background: #000000;
   color: #fff;
   height: 48px;
   border-radius: 10px;
@@ -1395,7 +1407,7 @@ input:checked + .slider:before {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #e55a2b;
+  background: #000000;
 }
 
 .btn-primary:disabled {
@@ -1447,7 +1459,7 @@ input:checked + .slider:before {
 
 .btn-invite:hover {
   background: #f9fafb;
-  border-color: #ff6b35;
+  border-color: #000000;
 }
 
 .btn-invite i {
@@ -1530,7 +1542,7 @@ input:checked + .slider:before {
 
 .btn-invite-option:hover {
   background: #f9fafb;
-  border-color: #ff6b35;
+  border-color: #000000;
 }
 
 .btn-invite-option i {
@@ -1586,7 +1598,7 @@ input:checked + .slider:before {
 
 .search-result-item:hover {
   background: #f9fafb;
-  border-color: #ff6b35;
+  border-color: #000000;
 }
 
 .user-info {
@@ -1607,7 +1619,7 @@ input:checked + .slider:before {
 }
 
 .add-user-btn {
-  background: #ff6b35;
+  background: #000000;
   border: none;
   border-radius: 50%;
   width: 32px;
@@ -1621,7 +1633,7 @@ input:checked + .slider:before {
 }
 
 .add-user-btn:hover {
-  background: #e55a2b;
+  background: #000000;
 }
 
 .no-results,
@@ -1690,7 +1702,7 @@ input:checked + .slider:before {
   padding: 12px 16px;
   border: none;
   border-radius: 8px;
-  background: #ff6b35;
+  background: #000000;
   color: #fff;
   font-size: 14px;
   font-weight: 500;
@@ -1699,7 +1711,7 @@ input:checked + .slider:before {
 }
 
 .btn-add-contacts:hover {
-  background: #e55a2b;
+  background: #000000;
 }
 
 .invited-members-section {

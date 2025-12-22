@@ -8,6 +8,7 @@ import SlideNav from "@/components/layout/SlideNav.vue";
 import BottomNav from "@/components/layout/BottomNav.vue";
 import BottomSheet from "@/components/common/BottomSheet.vue";
 import LoginPromptModal from "@/components/common/LoginPromptModal.vue";
+import GlobalLoading from "@/components/common/GlobalLoading.vue";
 
 const route = useRoute();
 const {
@@ -75,5 +76,8 @@ const hideHeader = computed(() => route.meta.hideHeader === true);
       :open="showLoginPrompt"
       @close="closeLoginPrompt"
     />
+
+    <!-- === 전역 로딩 오버레이 === -->
+    <GlobalLoading />
   </div>
 </template>

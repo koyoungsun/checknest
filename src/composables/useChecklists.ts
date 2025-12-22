@@ -74,7 +74,13 @@ export const useChecklists = () => {
    * 내가 만든 체크리스트 불러오기
    * ownerId === currentUser.uid 인 체크리스트만 가져옴
    * 
-   * 기본 todo는 Firestore에서 가져온 데이터만 사용하며, 별도로 추가하거나 병합하지 않음
+   * Home.vue 기준 필터링 규칙:
+   * - 기본 todo (isDefault === true)는 포함 (가장 오래된 1개만)
+   * - 일반 체크리스트는:
+   *   - progress === 100 제외 (완료됨)
+   *   - isFinished(item) 제외 (종료됨)
+   * 
+   * 새로 생성된 체크리스트가 항상 포함되도록 isCompleted === false만 필터링
    */
   const loadMyChecklists = async (isCompleted?: boolean) => {
     if (!currentUser.value) {
@@ -85,15 +91,103 @@ export const useChecklists = () => {
     loading.value = true;
     error.value = null;
     try {
-      // Firestore에서 ownerId로 조회한 결과만 사용 (isCompleted 필터 적용)
-      // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
+      // Firestore에서 ownerId로 조회 (isCompleted 필터 적용)
+      // 새로 생성된 체크리스트가 항상 포함되도록 isCompleted === false만 필터링 (기본값)
+      // Home.vue와 동일한 조건: isCompleted === false
       const myChecklists = await getChecklistsService({
         ownerId: currentUser.value.uid,
-        isCompleted,
+        isCompleted: isCompleted !== undefined ? isCompleted : false,
       });
       
       // 초기 가라데이터 방지: 배열이 아닌 경우 빈 배열로 처리
       const validMyChecklists = Array.isArray(myChecklists) ? myChecklists : [];
+      
+      // Home.vue 기준 클라이언트 필터링 적용
+      // 종료 여부 확인 헬퍼 함수 (Home.vue와 동일한 로직)
+      const getDueDateAsDate = (dueDate: any): Date | null => {
+        if (!dueDate) return null;
+        
+        // Firestore Timestamp인 경우
+        if (dueDate && typeof (dueDate as any).toDate === 'function') {
+          return (dueDate as any).toDate();
+        }
+        
+        // 이미 Date 객체인 경우
+        if (dueDate instanceof Date) {
+          return dueDate;
+        }
+        
+        // 문자열인 경우 (YYYY-MM-DD 형식)
+        if (typeof dueDate === 'string') {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+            const date = new Date(dueDate + 'T23:59:59');
+            if (!isNaN(date.getTime())) {
+              return date;
+            }
+          } else {
+            const date = new Date(dueDate);
+            if (!isNaN(date.getTime())) {
+              return date;
+            }
+          }
+        }
+        
+        return null;
+      };
+      
+      const isFinished = (item: Checklist): boolean => {
+        // 기본 todo 체크리스트는 종료 개념이 없음
+        if (item.isDefault === true) {
+          return false;
+        }
+        
+        const progress = item.progress || 0;
+        
+        // progress === 100인 경우만 완료 로직 진입
+        if (progress === 100) {
+          if (!item.dueDate) {
+            return true;
+          }
+          
+          const dueDateObj = getDueDateAsDate(item.dueDate);
+          if (dueDateObj) {
+            const now = new Date();
+            now.setHours(23, 59, 59, 999);
+            
+            if (dueDateObj < now) {
+              return true;
+            }
+            
+            return false;
+          }
+          
+          return true;
+        }
+        
+        return false;
+      };
+      
+      // Home.vue 기준 필터링: progress === 100 제외, isFinished 제외
+      // 기본 todo는 포함 (나중에 별도 처리)
+      const filteredMyChecklists = validMyChecklists.filter((item) => {
+        // 기본 todo는 포함 (필터링하지 않음)
+        if (item.isDefault === true) {
+          return true;
+        }
+        
+        // progress === 100이면 제외 (완료됨)
+        const progress = item.progress || 0;
+        if (progress === 100) {
+          return false;
+        }
+        
+        // 종료된 체크리스트 제외
+        if (isFinished(item)) {
+          return false;
+        }
+        
+        return true;
+      });
       
       // 기존 checklists에서 내가 만든 체크리스트를 제거하고 새로 로드한 것으로 교체
       // 공유 체크리스트는 유지
@@ -105,7 +199,7 @@ export const useChecklists = () => {
       const checklistMap = new Map<string, Checklist>();
       
       // 새로 로드한 내 체크리스트 추가
-      validMyChecklists.forEach(c => {
+      filteredMyChecklists.forEach(c => {
         checklistMap.set(c.id, c);
       });
       
@@ -140,13 +234,16 @@ export const useChecklists = () => {
    * 내가 초대된 체크리스트 불러오기
    * members 배열에 currentUser.uid가 포함된 체크리스트를 기준으로 한다.
    * 
-   * 필터링 규칙:
+   * Home.vue 기준 필터링 규칙:
    * - 기본 todo 체크리스트는 제외
-   * - status === 'archived' 인 체크리스트는 제외
-   * - progress === 100 이거나 status === 'completed' 인 체크리스트도
-   *   종료일이 남아있다면 sharedList에 계속 노출
+   * - ownerId === currentUser.uid 제외 (myList에 포함됨)
+   * - progress === 100인 경우:
+   *   - dueDate가 아직 남아있으면 포함
+   *   - dueDate가 없거나 지났으면 제외
+   * - progress < 100인 경우:
+   *   - isFinished(item) 제외 (종료됨)
    * 
-   * 기본 todo는 Firestore에서 가져온 데이터만 사용하며, 별도로 보존하거나 병합하지 않음
+   * 새로 생성된 체크리스트가 항상 포함되도록 isCompleted === false만 필터링
    */
   const loadSharedChecklists = async (isCompleted?: boolean) => {
     if (!currentUser.value) {
@@ -157,35 +254,84 @@ export const useChecklists = () => {
     loading.value = true;
     error.value = null;
     try {
-      // memberId로 조회 (isCompleted 필터는 사용하지 않음 - 클라이언트에서 필터링)
-      // 초기 가라데이터 방지: 실제 Firestore 데이터만 사용
+      // memberId로 조회 (isCompleted 필터 적용 - Home.vue와 Lists.vue에서 동일한 조건 사용)
+      // 새로 생성된 체크리스트가 항상 포함되도록 isCompleted === false만 필터링
+      // Home.vue와 동일한 조건: isCompleted === false
       const allMemberChecklists = await getChecklistsService({
         memberId: currentUser.value.uid,
+        isCompleted: isCompleted !== undefined ? isCompleted : false,
       });
       
       // 초기 가라데이터 방지: 배열이 아닌 경우 빈 배열로 처리
       const validMemberChecklists = Array.isArray(allMemberChecklists) ? allMemberChecklists : [];
       
-      // 종료일이 남아있는지 확인하는 헬퍼 함수
-      const hasRemainingDueDate = (checklist: Checklist): boolean => {
-        if (!checklist.dueDate) return false;
+      // Home.vue 기준 클라이언트 필터링 적용
+      // 종료일 변환 헬퍼 함수 (Home.vue와 동일한 로직)
+      const getDueDateAsDate = (dueDate: any): Date | null => {
+        if (!dueDate) return null;
         
         // Firestore Timestamp인 경우
-        let dueDateObj: Date | null = null;
-        if (checklist.dueDate && typeof (checklist.dueDate as any).toDate === 'function') {
-          dueDateObj = (checklist.dueDate as any).toDate();
-        } else if (checklist.dueDate instanceof Date) {
-          dueDateObj = checklist.dueDate;
+        if (dueDate && typeof (dueDate as any).toDate === 'function') {
+          return (dueDate as any).toDate();
         }
         
-        if (!dueDateObj) return false;
+        // 이미 Date 객체인 경우
+        if (dueDate instanceof Date) {
+          return dueDate;
+        }
         
-        const now = new Date();
-        now.setHours(23, 59, 59, 999);
-        return dueDateObj >= now;
+        // 문자열인 경우 (YYYY-MM-DD 형식)
+        if (typeof dueDate === 'string') {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+            const date = new Date(dueDate + 'T23:59:59');
+            if (!isNaN(date.getTime())) {
+              return date;
+            }
+          } else {
+            const date = new Date(dueDate);
+            if (!isNaN(date.getTime())) {
+              return date;
+            }
+          }
+        }
+        
+        return null;
       };
       
-      // ownerId가 아닌 체크리스트만 필터링하고, 필터링 규칙 적용
+      // 종료 여부 확인 헬퍼 함수 (Home.vue와 동일한 로직)
+      const isFinished = (item: Checklist): boolean => {
+        // 기본 todo 체크리스트는 종료 개념이 없음
+        if (item.isDefault === true) {
+          return false;
+        }
+        
+        const progress = item.progress || 0;
+        
+        // progress === 100인 경우만 완료 로직 진입
+        if (progress === 100) {
+          if (!item.dueDate) {
+            return true;
+          }
+          
+          const dueDateObj = getDueDateAsDate(item.dueDate);
+          if (dueDateObj) {
+            const now = new Date();
+            now.setHours(23, 59, 59, 999);
+            
+            if (dueDateObj < now) {
+              return true;
+            }
+            
+            return false;
+          }
+          
+          return true;
+        }
+        
+        return false;
+      };
+      
+      // Home.vue 기준 필터링 적용
       const sharedOnly = validMemberChecklists.filter(
         (checklist) => {
           // ownerId가 현재 사용자인 체크리스트는 제외 (myList에 포함됨)
@@ -198,22 +344,32 @@ export const useChecklists = () => {
             return false;
           }
           
-          // status === 'archived' 인 체크리스트는 제외
-          const status = (checklist as any).status;
-          if (status === 'archived') {
+          const progress = checklist.progress || 0;
+          
+          // progress === 100인 경우
+          if (progress === 100) {
+            // dueDate가 아직 남아있으면 공유 중 영역에 표시
+            if (checklist.dueDate) {
+              const dueDateObj = getDueDateAsDate(checklist.dueDate);
+              if (dueDateObj) {
+                const now = new Date();
+                now.setHours(23, 59, 59, 999);
+                // dueDate가 아직 남아있으면 공유 중 영역에 표시
+                if (dueDateObj >= now) {
+                  return true;
+                }
+              }
+            }
+            // dueDate가 없거나 지났으면 제외 (완료된 체크리스트 영역으로 이동)
             return false;
           }
           
-          // progress === 100 이거나 status === 'completed' 인 경우
-          const progress = checklist.progress || 0;
-          const isCompleted = progress === 100 || status === 'completed' || checklist.isCompleted === true;
-          
-          if (isCompleted) {
-            // 종료일이 남아있다면 포함, 없거나 지났다면 제외
-            return hasRemainingDueDate(checklist);
+          // progress < 100인 경우
+          // 종료된 체크리스트 제외 (dueDate 지남)
+          if (isFinished(checklist)) {
+            return false;
           }
           
-          // 그 외의 경우는 포함
           return true;
         }
       );
@@ -287,10 +443,38 @@ export const useChecklists = () => {
     loading.value = true;
     error.value = null;
     try {
-      // members 배열에 ownerId가 없으면 추가
-      const members = input.members || [];
-      if (!members.includes(currentUser.value.uid)) {
-        members.push(currentUser.value.uid);
+      // 필수 필드 검증
+      if (!input.title || !input.title.trim()) {
+        throw new Error("체크리스트 제목은 필수입니다.");
+      }
+      if (!input.groups || !Array.isArray(input.groups) || input.groups.length === 0) {
+        throw new Error("최소 1개 이상의 그룹이 필요합니다.");
+      }
+      
+      // members 배열 처리: ownerId는 별도 필드로 관리하므로 members 배열에는 포함하지 않음
+      // 하지만 기존 코드 호환성을 위해 객체 배열 형태로 변환
+      const members: Array<{ userId: string; role: 'admin' | 'member' }> = [];
+      
+      if (input.members && Array.isArray(input.members)) {
+        input.members.forEach((member) => {
+          // 객체 형태인 경우
+          if (typeof member === 'object' && member !== null && 'userId' in member) {
+            const memberObj = member as { userId: string; role?: 'admin' | 'member' };
+            if (memberObj.userId && memberObj.userId !== currentUser.value.uid) {
+              members.push({
+                userId: memberObj.userId,
+                role: memberObj.role || 'member'
+              });
+            }
+          }
+          // 문자열 형태인 경우 (legacy)
+          else if (typeof member === 'string' && member !== currentUser.value.uid) {
+            members.push({
+              userId: member,
+              role: 'member'
+            });
+          }
+        });
       }
       
       // 2. createChecklist 호출 직전에 dueDate 확인 로그 추가

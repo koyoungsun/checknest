@@ -69,85 +69,53 @@ const clearInput = () => {
 
 <style scoped>
 .search-box {
-  padding: 24px 16px 8px;
-  width: 100%;
-  box-sizing: border-box;
+  padding:24px 16px 8px; width:100%; box-sizing:border-box;
 }
 
 .search-box-wrapper {
-  background: linear-gradient(to bottom right, #e55a2b, #ff6b35, #ffa366);
-  padding: 3px;
-  border-radius: 16px;
-  width: 100%;
-  display: block;
-  position: relative;
+  background:linear-gradient(to bottom right, #000000, #1A1A1A, #333333);
+  padding:3px; border-radius:16px; width:100%; display:block; position:relative;
 }
 
 .search-input {
-  width: 100%;
-  height: 50px;
-  font-size: 14px;
-  font-weight: 700 !important;
-  font-family: 'Spoqa Han Sans Neo', sans-serif;
-  color: #333 !important;
-  border-radius: 13px;
-  background: #fff !important;
-  border: none;
-  box-sizing: border-box;
-  outline: none;
-  padding-left: 16px;
+  width:100%; height:50px; font-size:14px; font-weight:700 !important;
+  font-family:'Spoqa Han Sans Neo', sans-serif; color:#333 !important;
+  border-radius:13px; background:#fff !important; border:none;
+  box-sizing:border-box; outline:none; padding-left:16px;
 }
 
 .search-input::placeholder {
-  color: #ffa366 !important;
-  opacity: 1 !important;
+  color:#666666 !important; opacity:1 !important;
 }
 
 .search-input::-webkit-input-placeholder {
-  color: #ffa366 !important;
-  opacity: 1 !important;
+  color:#666666 !important; opacity:1 !important;
 }
 
 .search-input::-moz-placeholder {
-  color: #ffa366 !important;
-  opacity: 1 !important;
+  color:#666666 !important; opacity:1 !important;
 }
 
 .search-input:-ms-input-placeholder {
-  color: #ffa366 !important;
-  opacity: 1 !important;
+  color:#666666 !important; opacity:1 !important;
 }
 
 .search-input::-ms-input-placeholder {
-  color: #ffa366 !important;
-  opacity: 1 !important;
+  color:#666666 !important; opacity:1 !important;
 }
 
-.search-clear-btn,
-.search-submit-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.search-clear-btn, .search-submit-btn {
+  position:absolute; top:50%; transform:translateY(-50%); z-index:10;
+  background:transparent; border:none; cursor:pointer; padding:0;
+  display:flex; align-items:center; justify-content:center;
 }
 
 .search-clear-btn {
-  right: 50px;
-  color: #999;
-  font-size: 18px;
+  right:50px; color:#999; font-size:18px;
 }
 
 .search-submit-btn {
-  right: 16px;
-  color: #ffa366;
-  font-size: 18px;
+  right:16px; color:#666666; font-size:18px;
 }
 </style>
 

@@ -376,24 +376,23 @@ onMounted(() => {
 
 <style scoped>
 .prose {
-  color: #374151;
-  line-height: 1.75;
+  color:#374151; line-height:1.75;
 }
 
 .prose :deep(p) {
-  margin-bottom: 1rem;
+  margin-bottom:1rem;
 }
 
 .prose :deep(strong) {
-  font-weight: 600;
+  font-weight:600;
 }
 
 .prose :deep(em) {
-  font-style: italic;
+  font-style:italic;
 }
 
 .prose :deep(u) {
-  text-decoration: underline;
+  text-decoration:underline;
 }
 </style>
 

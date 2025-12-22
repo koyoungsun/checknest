@@ -297,13 +297,48 @@ export const createChecklist = async (
   input: ChecklistCreateInput
 ): Promise<string> => {
   try {
+    // 필수 필드 검증
+    if (!input.ownerId) {
+      throw new Error("ownerId는 필수 필드입니다.");
+    }
+    if (!input.title || !input.title.trim()) {
+      throw new Error("title은 필수 필드입니다.");
+    }
+    if (!input.groups || !Array.isArray(input.groups) || input.groups.length === 0) {
+      throw new Error("groups 배열은 필수 필드입니다. 최소 1개 이상의 그룹이 필요합니다.");
+    }
+    
     const now = Date.now();
     
-    // members 배열에 ownerId가 없으면 추가
-    const members = input.members || [];
-    if (!members.includes(input.ownerId)) {
-      members.push(input.ownerId);
+    // members 배열 처리: ownerId를 포함하도록 보장
+    // members가 객체 배열인 경우 userId 추출, 문자열 배열인 경우 그대로 사용
+    const members: Array<{ userId: string; role: 'admin' | 'member' }> = [];
+    
+    // 기존 members 배열 처리
+    if (input.members && Array.isArray(input.members)) {
+      input.members.forEach((member) => {
+        // 객체 형태인 경우
+        if (typeof member === 'object' && member !== null && 'userId' in member) {
+          const memberObj = member as { userId: string; role?: 'admin' | 'member' };
+          if (memberObj.userId && memberObj.userId !== input.ownerId) {
+            members.push({
+              userId: memberObj.userId,
+              role: memberObj.role || 'member'
+            });
+          }
+        }
+        // 문자열 형태인 경우 (legacy)
+        else if (typeof member === 'string' && member !== input.ownerId) {
+          members.push({
+            userId: member,
+            role: 'member'
+          });
+        }
+      });
     }
+    
+    // ownerId는 members 배열에 포함하지 않음 (ownerId는 별도 필드로 관리)
+    // 하지만 members 배열에 ownerId가 포함되어 있으면 제거하지 않음 (기존 데이터 호환성)
     
     // 3. input.dueDate 확인 및 처리
     console.log("[createChecklist] input.dueDate 받음:", {
@@ -342,20 +377,22 @@ export const createChecklist = async (
     
     // payload 생성: dueDate가 있으면 포함, 없으면 필드 자체를 저장하지 않음
     const payload: any = {
-      ownerId: input.ownerId,
-      title: input.title,
-      description: input.description || "",
-      groups: groups, // 그룹 배열 (필수, 최소 1개 이상)
+      ownerId: input.ownerId, // 필수 필드
+      title: input.title.trim(), // 필수 필드 (공백 제거)
+      description: input.description?.trim() || "", // 선택 필드 (기본값: 빈 문자열)
+      groups: groups, // 필수 필드 (그룹 배열, 최소 1개 이상)
       chatEnabled: chatEnabled, // 필수 필드 (기본 todo는 false, 그 외는 true)
-      createdAt: serverTimestamp(),
+      createdAt: serverTimestamp(), // 서버에서 자동 생성
       createdAtNum: now, // 정렬을 위한 숫자 타임스탬프
-      updatedAt: serverTimestamp(),
-      isCompleted: false,
-      progress: 0,
-      members: members, // ownerId가 포함된 members 배열
-      rolesEnabled: input.rolesEnabled || false,
-      templateId: input.templateId || null,
-      isDefault: isDefault,
+      updatedAt: serverTimestamp(), // 서버에서 자동 생성
+      isCompleted: false, // 기본값: false
+      progress: 0, // 기본값: 0
+      members: members.length > 0 ? members : [], // 멤버 배열 (빈 배열도 허용)
+      rolesEnabled: input.rolesEnabled || false, // 기본값: false
+      templateId: input.templateId || null, // 선택 필드 (기본값: null)
+      isDefault: isDefault, // 기본값: false
+      // maxParticipants: 선택 필드 (있으면 포함)
+      ...(input.maxParticipants !== undefined ? { maxParticipants: input.maxParticipants } : {}),
       // dueDate가 있으면 Timestamp로 추가, 없으면 필드 자체를 저장하지 않음
       ...(dueDateTimestamp ? { dueDate: dueDateTimestamp } : {}),
     };

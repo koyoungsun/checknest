@@ -43,14 +43,19 @@ export interface SimpleMember {
   name: string;
 }
 
+// 비공개 프로필 캐시 (재요청 방지)
+const privateProfileCache = new Set<string>();
+
 /**
  * 공개 사용자 프로필 조회
  * isPublicProfile === true인 경우에만 조회 가능합니다.
  * 본인 프로필은 isPublicProfile 값과 관계없이 항상 조회 가능합니다.
  * 
+ * 프로필 비공개/권한 없음은 에러로 취급하지 않고 기본 프로필 객체를 반환합니다.
+ * 
  * @param uid - 사용자 ID
  * @param currentUserId - 현재 로그인한 사용자 ID (선택, 본인 프로필 조회 시 필요)
- * @returns 공개 프로필 정보 또는 null (문서가 없거나 공개되지 않은 경우)
+ * @returns 공개 프로필 정보 또는 기본 프로필 객체 (문서가 없거나 공개되지 않은 경우)
  */
 export const getUserProfile = async (
   uid: string,
@@ -58,8 +63,18 @@ export const getUserProfile = async (
 ): Promise<UserProfile | null> => {
   // userId 검증: undefined, null, 빈 문자열 체크
   if (!uid || typeof uid !== 'string' || uid.trim() === '') {
-    console.warn("[userService] getUserProfile: 유효하지 않은 userId:", uid);
     return null;
+  }
+
+  // 비공개 프로필 캐시 확인 (재요청 방지)
+  if (privateProfileCache.has(uid)) {
+    return {
+      displayName: "알 수 없음",
+      photoURL: undefined,
+      isPublicProfile: false,
+      createdAt: null,
+      updatedAt: null,
+    };
   }
 
   try {
@@ -74,8 +89,15 @@ export const getUserProfile = async (
       const isPublic = data.isPublicProfile === true;
       
       if (!isOwnProfile && !isPublic) {
-        // 공개되지 않은 프로필은 null 반환 (권한 오류가 아님)
-        return null;
+        // 공개되지 않은 프로필은 기본 프로필 객체 반환 (에러 아님)
+        privateProfileCache.add(uid);
+        return {
+          displayName: "알 수 없음",
+          photoURL: undefined,
+          isPublicProfile: false,
+          createdAt: null,
+          updatedAt: null,
+        };
       }
       
       return {
@@ -86,18 +108,36 @@ export const getUserProfile = async (
         updatedAt: data.updatedAt || null,
       };
     }
-    return null;
+    
+    // 문서가 없는 경우 기본 프로필 객체 반환
+    return {
+      displayName: "알 수 없음",
+      photoURL: undefined,
+      isPublicProfile: false,
+      createdAt: null,
+      updatedAt: null,
+    };
   } catch (error: any) {
-    // 권한 오류 처리 (isPublicProfile === false인 경우 발생 가능)
+    // 권한 오류는 비공개 프로필로 처리 (에러 아님)
     if (error?.code === 'permission-denied') {
-      // 권한 오류는 공개되지 않은 프로필이거나 구조적 문제일 수 있음
-      // UI가 깨지지 않도록 null 반환 (fallback 처리)
-      console.warn("[userService] getUserProfile: 권한 오류 (프로필이 비공개일 수 있음):", uid);
-      return null;
+      privateProfileCache.add(uid);
+      return {
+        displayName: "알 수 없음",
+        photoURL: undefined,
+        isPublicProfile: false,
+        createdAt: null,
+        updatedAt: null,
+      };
     }
-    // 네트워크 오류 등 기타 에러는 throw
-    console.error("[userService] getUserProfile: 프로필 조회 실패:", error);
-    throw error;
+    
+    // 네트워크 오류 등 기타 에러도 기본 프로필 객체 반환 (throw 제거)
+    return {
+      displayName: "알 수 없음",
+      photoURL: undefined,
+      isPublicProfile: false,
+      createdAt: null,
+      updatedAt: null,
+    };
   }
 };
 

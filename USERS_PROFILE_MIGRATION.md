@@ -95,3 +95,7 @@ match /userPrivateData/{userId} {
 2. 기존 users 문서 마이그레이션 (선택사항)
 3. Mypage.vue의 bio, myMembers, blockedMembers를 별도 컬렉션으로 분리 (향후 작업)
 
+
+
+
+

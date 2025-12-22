@@ -198,74 +198,49 @@ const goCreate = () => {
 
 <style scoped>
 .content-wrapper {
-  padding: 16px;
+  padding:16px;
 }
 
 .board-list-section {
-  background-color: #fff;
-  padding: 0;
-  border-radius: 12px;
-  border: 1px solid var(--color-primary, #ff6b35);
+  background-color:#fff; padding:0; border-radius:12px;
+  border:1px solid var(--color-primary, #000000);
 }
 
 .board-list-section .list-item {
-  border-bottom: 1px dashed #aeaeae;
+  border-bottom:1px dashed #aeaeae;
 }
 
 .board-list-section .list-item:last-child {
-  border-bottom: none;
+  border-bottom:none;
 }
 
 .radio-tab {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
+  display:inline-flex; align-items:center; cursor:pointer; position:relative;
 }
 
 .radio-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+  position:absolute; opacity:0; width:0; height:0;
 }
 
 .radio-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  border: 1px solid #d1d5db;
-  background-color: #fff;
-  color: #374151;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  margin-right: 2px;
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:6px 12px; border-radius:999px; font-size:13px; font-weight:700;
+  border:1px solid #d1d5db; background-color:#fff; color:#374151;
+  transition:all 0.2s ease; white-space:nowrap; margin-right:2px;
 }
 
 .radio-tab--active .radio-label {
-  background-color: var(--color-primary, #ff6b35);
-  color: #fff;
-  border-color: var(--color-primary, #ff6b35);
+  background-color:var(--color-primary, #000000); color:#fff;
+  border-color:var(--color-primary, #000000);
 }
 
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 16px;
-  text-align: center;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:48px 16px; text-align:center;
 }
 
 .line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
 </style>
 

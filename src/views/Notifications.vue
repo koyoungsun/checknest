@@ -143,6 +143,6 @@ const goToChecklist = (checklistId: string) => {
 
 <style scoped>
 .content-wrapper {
-  padding: 16px;
+  padding:16px;
 }
 </style>

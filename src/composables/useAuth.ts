@@ -86,26 +86,24 @@ const createDefaultChecklist = async (user: User): Promise<void> => {
       return; // 로그 출력 없이 return (중복 로그 방지)
     }
 
-    // 기본 체크리스트 생성
-    // 수정: "아무 체크리스트도 없을 때"에만 1회 실행되도록 보장
-    // existingChecklists.length === 0 조건 추가
-    if (existingChecklists.length === 0) {
-      await createChecklist({
-        ownerId: user.uid,
-        title: "todo",
-        description: "",
-        groups: [{
-          groupId: crypto.randomUUID(),
-          groupName: "Group default",
-          order: 0
-        }],
-        members: [user.uid], // 명시적으로 user.uid 포함 (서비스에서도 추가하지만 중복 방지)
-        rolesEnabled: false,
-        isDefault: true, // 기본 체크리스트로 표시
-        chatEnabled: true, // V1에서는 채팅을 기본 항상 활성으로 유지
-        dueDate: null, // 마감일 없음
-      });
-    }
+    // 기본 체크리스트 생성 (isDefault === true인 체크리스트가 없을 때만)
+    // members 배열: ownerId는 별도 필드로 관리하므로 빈 배열로 전달
+    // (createChecklist 서비스에서 ownerId를 members에 추가하지 않도록 수정됨)
+    await createChecklist({
+      ownerId: user.uid,
+      title: "todo",
+      description: "",
+      groups: [{
+        groupId: crypto.randomUUID(),
+        groupName: "Group default",
+        order: 0
+      }],
+      members: [], // 빈 배열 (ownerId는 별도 필드로 관리)
+      rolesEnabled: false,
+      isDefault: true, // 기본 체크리스트로 표시
+      chatEnabled: false, // 기본 todo는 채팅 비활성
+      dueDate: null, // 마감일 없음
+    });
     
     hasInitialized = true; // 생성 완료 후 초기화 완료로 표시
     initializedUserId = user.uid; // 사용자 ID 저장

@@ -21,16 +21,16 @@
 
           <!-- 로그인 전: 서비스 소개 영역 -->
           <template v-if="!currentUser">
-            <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg home-login-prompt">
+            <div class="bg-gradient-to-br from-gray-900 to-black rounded-xl p-6 text-white shadow-lg home-login-prompt">
               <div class="text-center mb-4">
                 <i class="bi bi-card-checklist text-5xl mb-3"></i>
                 <h3 class="text-xl font-bold mb-2">체크리스트로 일상을 관리하세요</h3>
-                <p class="text-sm text-orange-50 leading-relaxed mb-4">
+                <p class="text-sm text-gray-100 leading-relaxed mb-4">
                   할 일을 체계적으로 관리하고<br />
                   템플릿으로 빠르게 시작하세요
                 </p>
               </div>
-              <div class="space-y-2 text-sm text-orange-50">
+              <div class="space-y-2 text-sm text-gray-100">
                 <div class="flex items-center gap-2">
                   <i class="bi bi-check-circle text-lg"></i>
                   <span>체크리스트 생성 및 관리</span>
@@ -47,13 +47,13 @@
               <div class="mt-6 flex gap-3">
                 <button
                   @click="handleShowLoginPrompt"
-                  class="flex-1 px-4 py-2 bg-white text-orange-600 rounded-lg font-semibold hover:bg-orange-50 transition-colors"
+                  class="flex-1 px-4 py-2 bg-white text-black rounded-lg font-semibold hover:bg-gray-100 transition-colors"
                 >
                   로그인
                 </button>
                 <button
                   @click="router.push('/signup')"
-                  class="flex-1 px-4 py-2 bg-orange-700 text-white rounded-lg font-semibold hover:bg-orange-800 transition-colors"
+                  class="flex-1 px-4 py-2 bg-black text-white rounded-lg font-semibold hover:bg-gray-900 transition-colors"
                 >
                   회원가입
                 </button>
@@ -130,8 +130,8 @@
                     class="check-card cursor-pointer home-checklist-create"
                     style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 160px;"
                   >
-                    <i class="bi bi-plus-circle" style="font-size: 48px; color: #ff6b35; margin-bottom: 8px;"></i>
-                    <h3 style="font-size: 18px; color: #e55a2b;">체크리스트 만들기</h3>
+                    <i class="bi bi-plus-circle" style="font-size: 48px; color: #000000; margin-bottom: 8px;"></i>
+                    <h3 style="font-size: 18px; color: #000000;">체크리스트 만들기</h3>
                   </div>
                 </SwiperSlide>
               </Swiper>
@@ -170,7 +170,7 @@
                 <!-- 제목 -->
                 <div class="mb-1">
                   <h3 class="font-semibold" style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;">
-                    <strong style="font-weight: 400; font-size: 12px; background-color: #f90; padding: 2px 4px; border-radius: 2px; color: #fff;">{{ tpl.category }}</strong>
+                    <strong style="font-weight: 400; font-size: 12px; background-color: #000000; padding: 2px 4px; border-radius: 2px; color: #fff;">{{ tpl.category }}</strong>
                     <span class="truncate" style="color: #111;">{{ tpl.title }}</span>
                     <em v-if="isNewTemplate(tpl.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
                   </h3>
@@ -276,24 +276,44 @@
       image: string;
     }
 
+    // ==================== 상태 변수 선언 ====================
+    
+    // 배너 데이터
     const banner1 = ref<Banner | null>(null);
     const banner2 = ref<Banner | null>(null);
 
-    const openSort = () => {
-        console.log("open sort bottom sheet");
-    };
+    // 로딩 상태 관리
+    const loadingTemplates = ref(false);
+    const loadingBoards = ref(false);
+    const loadingChecklists = ref(false);
+    const isLoading = ref(false);
+
+    // 로딩 완료 플래그 (무한 재시도 방지)
+    const hasLoaded = ref(false);
+    const checklistsLoadedUserId = ref<string | null>(null);
+
+    // 템플릿 데이터
+    const templates = ref<Template[]>([]);
 
     // 진행률 애니메이션
     const animatedProgress = ref<Record<string, number>>({});
     const animationStarted = ref<Record<string, boolean>>({});
 
-    // 실제 체크리스트 데이터 로드
+    // ==================== Composables ====================
+    
     const router = useRouter();
     const { checklists, loadMyChecklists, loadSharedChecklists } = useChecklists();
     const { currentUser } = useAuth();
     const { getAuthorName, loadAuthorNames } = useAuthorName();
     const { showLoginPrompt } = useBottomSheet();
-    
+    const { posts: recentPostsData, loadPosts } = usePosts();
+
+    // ==================== 함수 정의 ====================
+
+    const openSort = () => {
+        console.log("open sort bottom sheet");
+    };
+
     // router가 undefined가 되지 않도록 보장
     if (!router) {
       console.error("[Home.vue] Router initialization failed");
@@ -529,7 +549,7 @@
 
     // sharedList: members에 currentUser.uid가 포함되고, ownerId !== currentUser.uid인 체크리스트만 포함
     // 기본 todo는 절대 포함되지 않음
-    // progress === 100인 체크리스트는 제외
+    // Lists.vue와 동일한 필터링 로직 사용
     const sharedList = computed(() => {
       if (!currentUser.value) {
         return [];
@@ -558,11 +578,28 @@
           if (!item.members.includes(userId)) return false;
         }
         
-        // progress === 100이면 제외 (완료됨)
         const progress = item.progress || 0;
-        if (progress === 100) return false;
         
-        // 종료된 체크리스트 제외
+        // progress === 100인 경우
+        if (progress === 100) {
+          // dueDate가 아직 남아있으면 공유 중 영역에 표시
+          if (item.dueDate) {
+            const dueDateObj = getDueDateAsDate(item.dueDate);
+            if (dueDateObj) {
+              const now = new Date();
+              now.setHours(23, 59, 59, 999);
+              // dueDate가 아직 남아있으면 공유 중 영역에 표시
+              if (dueDateObj >= now) {
+                return true;
+              }
+            }
+          }
+          // dueDate가 없거나 지났으면 제외 (완료된 체크리스트 영역으로 이동)
+          return false;
+        }
+        
+        // progress < 100인 경우
+        // 종료된 체크리스트 제외 (dueDate 지남)
         if (isFinished(item)) return false;
         
         return true;
@@ -610,7 +647,6 @@
     const loadRecentTemplates = async () => {
       loadingTemplates.value = true;
       try {
-        console.log("[HOME] loadRecentTemplates start");
         const { getTemplates } = await import("@/services/templates");
         
         // visibility === "public" 인 템플릿만 조회 (최신순)
@@ -620,26 +656,14 @@
           "desc"
         );
         
-        // 실제 쿼리 결과 개수 확인
-        const queryResultCount = Array.isArray(publicTemplates) ? publicTemplates.length : 0;
-        console.log("[HOME] loadRecentTemplates query result:", queryResultCount, "templates (visibility: public)");
-        
         // 최대 3개만 표시
         const templatesArray = Array.isArray(publicTemplates) ? publicTemplates : [];
         templates.value = templatesArray.slice(0, 3);
-        const displayCount = templates.value.length;
         
         // 작성자 이름 로드 (템플릿이 있는 경우만)
         const ownerIds = templates.value.map((tpl) => tpl?.ownerId).filter(Boolean);
         if (ownerIds.length > 0) {
           await loadAuthorNames(ownerIds);
-        }
-        
-        console.log("[HOME] loadRecentTemplates done: query=" + queryResultCount + ", display=" + displayCount);
-        
-        // 쿼리 결과가 0개인 경우에만 경고 (정상 상태일 수 있음)
-        if (queryResultCount === 0) {
-          console.warn("[HOME] loadRecentTemplates: Firestore에 public 템플릿이 0개입니다. visibility='public'인 템플릿이 있는지 확인하세요.");
         }
       } catch (err: any) {
         console.error("[HOME] loadRecentTemplates failed:", err?.message || err);
@@ -659,13 +683,7 @@
     const loadRecentBoards = async () => {
       loadingBoards.value = true;
       try {
-        console.log("[HOME] loadRecentBoards start");
         await loadPosts(undefined, 5); // limit(5) 적용 (최근 게시글 5개)
-        const count = recentPostsData.value.length;
-        console.log("[HOME] loadRecentBoards done:", count);
-        if (count === 0) {
-          console.warn("[HOME] loadRecentBoards: 게시글이 0개입니다. Firestore에 데이터가 있는지 확인하세요.");
-        }
       } catch (err: any) {
         console.error("[HOME] loadRecentBoards failed:", err?.message || err);
         // 에러 발생 시에도 빈 배열로 설정하여 UI가 깨지지 않도록 함
@@ -685,12 +703,10 @@
     const loadChecklists = async () => {
       // currentUser가 없으면 체크리스트 로드 불가
       if (!currentUser.value) {
-        console.info("[HOME] loadChecklists: currentUser not ready → skip");
         return;
       }
       
-      console.log("[HOME] loadChecklists start");
-      
+      loadingChecklists.value = true;
       try {
         await Promise.all([
           loadMyChecklists(false),
@@ -703,25 +719,43 @@
             startProgressAnimation(homeChecklists.value[0].id);
           }
         }, 100);
-        
-        console.log("[HOME] loadChecklists done");
       } catch (err: any) {
         console.error("[HOME] loadChecklists failed:", err?.message || err);
+      } finally {
+        loadingChecklists.value = false;
       }
     };
     
     // ==================== Watch & Lifecycle ====================
     
+    // 통합 로딩 상태 계산 (모든 로딩이 완료되면 false)
+    watch(
+      [loadingTemplates, loadingBoards, loadingChecklists],
+      ([templatesLoading, boardsLoading, checklistsLoading]) => {
+        isLoading.value = templatesLoading || boardsLoading || checklistsLoading;
+      },
+      { immediate: true }
+    );
+
     // ============================================================
     // Public 데이터 로드 (로그인 불필요)
     // ============================================================
     // 섹션 1: 최근 템플릿 - 로그인 여부와 무관하게 public 템플릿 로드
     // 섹션 2: 최근 게시글 - 로그인 여부와 무관하게 public 게시글 로드
     // - currentUser 의존성 없음 (독립 실행)
-    // - onMounted에서만 실행
+    // - onMounted에서만 실행 (1회만 실행, 무한 재시도 방지)
     onMounted(() => {
-      loadRecentTemplates();
-      loadRecentBoards();
+      // 이미 로드했으면 재실행하지 않음 (무한 재시도 방지)
+      if (hasLoaded.value) return;
+      
+      // Public 데이터 병렬 로드
+      Promise.all([
+        loadRecentTemplates(),
+        loadRecentBoards()
+      ]).finally(() => {
+        // Public 데이터 로드 완료 플래그 설정
+        hasLoaded.value = true;
+      });
     });
     
     // ============================================================
@@ -730,12 +764,12 @@
     // - 로그인 상태(currentUser 존재)일 때만 로드
     // - currentUser 의존성 있음
     // - watch(currentUser)에서만 실행
+    // - 계정 전환 시에만 재로드 (무한 재시도 방지)
     watch(
       () => currentUser.value,
       (user, prevUser) => {
         // currentUser가 없으면 체크리스트 로드 스킵
         if (!user) {
-          console.info("[HOME] currentUser not ready → skip load checklists");
           return;
         }
         
@@ -743,10 +777,17 @@
         if (prevUser && prevUser.uid !== user.uid) {
           const { resetChecklists } = useChecklists();
           resetChecklists();
+          checklistsLoadedUserId.value = null; // 계정 전환 시 플래그 초기화
         }
         
-        // currentUser 확정 후 체크리스트만 로드
+        // 동일 사용자에 대해 이미 로드했으면 재실행하지 않음 (무한 재시도 방지)
+        if (checklistsLoadedUserId.value === user.uid) {
+          return;
+        }
+        
+        // 체크리스트 로드
         loadChecklists();
+        checklistsLoadedUserId.value = user.uid;
       },
       { immediate: true }
     );
@@ -880,16 +921,6 @@
       }
     };
 
-    // ==================== 상태 선언 ====================
-    
-    // 템플릿 데이터
-    const templates = ref<Template[]>([]);
-    const loadingTemplates = ref(false);
-    
-    // 게시글 데이터 (usePosts composable에서 관리)
-    const { posts: recentPostsData, loadPosts } = usePosts();
-    const loadingBoards = ref(false);
-    
     // ==================== Computed ====================
     
     // 최근 템플릿 3개

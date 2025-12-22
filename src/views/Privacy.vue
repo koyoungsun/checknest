@@ -118,12 +118,12 @@
   }
   
   .email-link {
-    color: var(--color-primary, #ff6b35);
+    color: var(--color-primary, #000000);
     text-decoration: underline;
   }
   
   .email-link:hover {
-    color: var(--color-primary, #ff6b35);
+    color: var(--color-primary, #000000);
     opacity: 0.8;
   }
   </style>

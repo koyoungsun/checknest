@@ -145,8 +145,8 @@
         </div>
       </section>
 
-      <!-- ③ 종료된 리스트 (항상 표시) -->
-      <section>
+      <!-- ③ 종료된 리스트 (1개 이상일 때만 표시) -->
+      <section v-if="completedList.length > 0">
         <div class="flex items-center justify-between mb-2">
           <h2 class="text-lg font-semibold text-gray-600">
             종료된 체크리스트
@@ -156,7 +156,7 @@
           </p>
         </div>
 
-        <div v-if="completedList.length > 0" class="space-y-0 completed-list-section">
+        <div class="space-y-0 completed-list-section">
           <div
             v-for="item in completedList"
             :key="item.id"
@@ -202,12 +202,6 @@
               <span style="font-size: 20px; font-weight: 500;">%</span>
             </span>
           </div>
-        </div>
-
-        <!-- 종료된 리스트 없을 때 -->
-        <div v-else class="empty-state text-xs completed-list-section">
-          <i class="bi bi-check-circle"></i>
-          <p>종료된 체크리스트가 없습니다.</p>
         </div>
       </section>
 
@@ -645,80 +639,62 @@ onActivated(() => {
 
 <style scoped>
 .content-wrapper {
-  padding: 16px;
+  padding:16px;
 }
 
 .my-list-section {
-  background: linear-gradient(to bottom right,
-    var(--color-primary), var(--color-primary-light), #ffa366, #e55a2b);
-  padding: 0;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  border: 1px solid #fff;
+  background:linear-gradient(to bottom right, var(--color-primary), var(--color-primary-light), #333333, #000000);
+  padding:0; border-radius:12px; margin-bottom:24px; border:1px solid #fff;
 }
 
-.my-list-section h3,
-.my-list-section p,
-.my-list-section span {
-  color: #fff;
+.my-list-section h3, .my-list-section p, .my-list-section span {
+  color:#fff;
 }
 
 .my-list-section i {
-  color: #fff;
+  color:#fff;
 }
 
-.my-list-section h3 strong,
-.shared-list-section h3 strong,
-.completed-list-section h3 strong {
-  font-weight: 400;
-  font-size: 12px;
-  padding: 2px 4px;
-  border-radius: 2px;
-  margin-right: 4px;
-  color: #fff;
+.my-list-section h3 strong, .shared-list-section h3 strong, .completed-list-section h3 strong {
+  font-weight:400; font-size:12px; padding:2px 4px; border-radius:2px;
+  margin-right:4px; color:#fff;
 }
 
 .my-list-section h3 strong {
-  background-color: #333;
+  background-color:#333;
 }
 
 .shared-list-section h3 strong {
-  background-color: var(--color-primary, #ff6b35);
+  background-color:var(--color-primary, #000000);
 }
 
 .completed-list-section h3 strong {
-  background-color: #aeaeae;
+  background-color:#aeaeae;
 }
 
 .shared-list-section {
-  background-color: #fff;
-  padding: 0;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  border: 1px solid var(--color-primary, #ff6b35);
+  background-color:#fff; padding:0; border-radius:12px;
+  margin-bottom:24px; border:1px solid var(--color-primary, #ff6b35);
 }
 
 .shared-list-section .list-item {
-  border-bottom: 1px dashed #aeaeae;
+  border-bottom:1px dashed #aeaeae;
 }
 
 .shared-list-section .list-item:last-child {
-  border-bottom: none;
+  border-bottom:none;
 }
 
 .completed-list-section {
-  background-color: #fff;
-  padding: 0;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  border: 1px solid #999;
+  background-color:#fff; padding:0; border-radius:12px;
+  margin-bottom:24px; border:1px solid #999;
 }
 
 .completed-list-section .list-item {
-  border-bottom: 1px dashed #aeaeae;
+  border-bottom:1px dashed #aeaeae;
 }
 
 .completed-list-section .list-item:last-child {
-  border-bottom: none;
+  border-bottom:none;
 }
 </style>

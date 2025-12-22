@@ -115,7 +115,7 @@
                   style="font-size: 15px; display: flex; align-items: center; gap: 4px; color: #111;"
                 >
                   <strong
-                    style="font-weight: 400; font-size: 12px; background-color: #f90; padding: 2px 4px; border-radius: 2px; color: #fff;"
+                    style="font-weight: 400; font-size: 12px; background-color: #000000; padding: 2px 4px; border-radius: 2px; color: #fff;"
                   >
                     {{ tpl.category }}
                   </strong>
@@ -330,77 +330,48 @@ watch(
 
 <style scoped>
 .no-data {
-  text-align: center;
-  margin: 40px auto;
-  color: #9ca3af;
-  font-size: 14px;
+  text-align:center; margin:40px auto; color:#9ca3af; font-size:14px;
 }
 
-.search-list-section,
-.search-template-section,
-.search-post-section {
-  background-color: #fff;
-  padding: 0;
-  border-radius: 12px;
-  border: 1px solid var(--color-primary, #ff6b35);
+.search-list-section, .search-template-section, .search-post-section {
+  background-color:#fff; padding:0; border-radius:12px;
+  border:1px solid var(--color-primary, #000000);
 }
 
-.search-list-section .list-item,
-.search-template-section .list-item,
-.search-post-section .list-item {
-  border-bottom: 1px dashed #aeaeae;
+.search-list-section .list-item, .search-template-section .list-item, .search-post-section .list-item {
+  border-bottom:1px dashed #aeaeae;
 }
 
-.search-list-section .list-item:last-child,
-.search-template-section .list-item:last-child,
-.search-post-section .list-item:last-child {
-  border-bottom: none;
+.search-list-section .list-item:last-child, .search-template-section .list-item:last-child, .search-post-section .list-item:last-child {
+  border-bottom:none;
 }
 
 .search-list-section h3 strong {
-  font-weight: 400;
-  font-size: 12px;
-  padding: 2px 4px;
-  border-radius: 2px;
-  margin-right: 4px;
-  color: #fff;
-  background-color: #333;
+  font-weight:400; font-size:12px; padding:2px 4px; border-radius:2px;
+  margin-right:4px; color:#fff; background-color:#333;
 }
 
 /* 개인 리스트 스타일 */
 .search-item-personal {
-  background: linear-gradient(
-    to bottom right,
-    var(--color-primary),
-    var(--color-primary-light),
-    #ffa366,
-    #e55a2b
-  );
+  background:linear-gradient(to bottom right, var(--color-primary), var(--color-primary-light), #333333, #000000);
 }
 
-.search-item-personal h3,
-.search-item-personal p,
-.search-item-personal span {
-  color: #fff;
+.search-item-personal h3, .search-item-personal p, .search-item-personal span {
+  color:#fff;
 }
 
 .search-item-personal i {
-  color: #fff;
+  color:#fff;
 }
 
 /* 공유 리스트 스타일 */
 .search-item-shared h3 strong {
-  background-color: var(--color-primary, #ff6b35);
+  background-color:var(--color-primary, #000000);
 }
 
 /* 템플릿 리스트 스타일 */
 .search-template-section h3 strong {
-  font-weight: 400;
-  font-size: 12px;
-  background-color: #f90;
-  padding: 2px 4px;
-  border-radius: 2px;
-  margin-right: 4px;
-  color: #fff;
+  font-weight:400; font-size:12px; background-color:#000000;
+  padding:2px 4px; border-radius:2px; margin-right:4px; color:#fff;
 }
 </style>

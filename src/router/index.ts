@@ -328,6 +328,24 @@ const routes = [
       bottomNav: false,
     },
   },
+
+  // ===========================
+  // ❌ 404 Not Found (catch-all)
+  // ===========================
+  {
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: () => import("@/views/NotFound.vue"),
+    meta: {
+      title: "404",
+      subtitle: null,
+      back: false,
+      menu: false,
+      bottomNav: false,
+      hideHeader: true,
+      public: true,
+    },
+  },
 ];
 
 // ==================================

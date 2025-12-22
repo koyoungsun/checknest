@@ -380,66 +380,41 @@ const tryWithdraw = async () => {
 }
 
 .accordion-group {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  overflow: hidden;
+  background:#fff; border-radius:12px; border:1px solid #e5e7eb; overflow:hidden;
 }
 
 .accordion-header {
-  width: 100%;
-  padding: 14px 16px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
+  width:100%; padding:14px 16px; font-size:0.95rem; font-weight:600;
+  display:flex; justify-content:space-between; align-items:center; text-align:center;
 }
 
 .accordion-header span {
-  flex: 1;
-  text-align: center;
+  flex:1; text-align:center;
 }
 
 .accordion-body {
-  border-top: 1px solid #f3f4f6;
-  padding: 12px 0;
+  border-top:1px solid #f3f4f6; padding:12px 0;
 }
 
 .accordion-item {
-  padding: 12px 16px;
-  font-size: 0.9rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
+  padding:12px 16px; font-size:0.9rem;
+  display:flex; justify-content:space-between; align-items:center; text-align:center;
 }
 
 .accordion-item span {
-  flex: 1;
-  text-align: center;
+  flex:1; text-align:center;
 }
 
 .empty-state {
-  text-align: center;
-  padding: 20px 0;
+  text-align:center; padding:20px 0;
 }
 
 .unblock-btn {
-  background: #ef4444;
-  color: #fff;
-  padding: 4px 8px;
-  font-size: 0.75rem;
-  border-radius: 6px;
+  background:#ef4444; color:#fff; padding:4px 8px; font-size:0.75rem; border-radius:6px;
 }
 
 .withdraw-btn {
-  background: #dc2626;
-  color: #fff;
-  font-size: 0.9rem;
-  padding: 14px 0;
-  border-radius: 12px;
-  font-weight: 600;
+  background:#dc2626; color:#fff; font-size:0.9rem;
+  padding:14px 0; border-radius:12px; font-weight:600;
 }
 </style>

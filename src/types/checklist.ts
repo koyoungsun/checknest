@@ -180,6 +180,15 @@ export interface ChecklistCreateInput {
    * @note 기본 todo(isDefault: true)에는 false로 자동 지정됨
    */
   chatEnabled?: boolean;
+  /**
+   * 최대 참가 인원 수 (옵션)
+   * 
+   * @note Firestore 저장 정책:
+   *       - undefined: 저장되지 않음 (필드 자체가 생성되지 않음)
+   *       - number: number 값으로 저장됨
+   * @note 체크리스트 생성 시 최초 참여자 수(owner + 초대된 멤버)로 저장됨
+   */
+  maxParticipants?: number;
 }
 
 /**

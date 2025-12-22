@@ -93,7 +93,7 @@
                       <em v-if="isNewTemplate(tpl.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
                     </h3>
                     <div class="flex items-center gap-2 mt-1">
-                      <span class="text-xs px-2 py-0.5 bg-orange-500 text-white rounded">
+                      <span class="text-xs px-2 py-0.5 bg-black text-white rounded">
                         {{ tpl.category }}
                       </span>
                       <span class="text-xs px-2 py-0.5 bg-gray-200 text-gray-700 rounded">
@@ -156,7 +156,7 @@
                       <em v-if="isNewTemplate(tpl.createdAt)" style="font-style: normal; color: #f00; font-size: 11px; font-weight: 600; flex-shrink: 0; margin-left: 4px; position: relative; top: -3px;">new</em>
                     </h3>
                     <div class="flex items-center gap-2 mt-1">
-                      <span class="text-xs px-2 py-0.5 bg-orange-500 text-white rounded">
+                      <span class="text-xs px-2 py-0.5 bg-black text-white rounded">
                         {{ tpl.category }}
                       </span>
                     </div>
@@ -507,72 +507,49 @@ const goDetail = (id: string) => {
 
 <style scoped>
 .content-wrapper {
-  padding: 16px;
+  padding:16px;
 }
 
 .template-list-section {
-  background-color: #fff;
-  padding: 0;
-  border-radius: 12px;
-  border: 1px solid var(--color-primary, #ff6b35);
+  background-color:#fff; padding:0; border-radius:12px;
+  border:1px solid var(--color-primary, #000000);
 }
 
 .template-list-section .list-item {
-  border-bottom: 1px dashed #aeaeae;
+  border-bottom:1px dashed #aeaeae;
 }
 
 .template-list-section .list-item:last-child {
-  border-bottom: none;
+  border-bottom:none;
 }
 
 .radio-tab {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
+  display:inline-flex; align-items:center; cursor:pointer; position:relative;
 }
 
 .radio-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+  position:absolute; opacity:0; width:0; height:0;
 }
 
 .radio-label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  border: 1px solid #d1d5db;
-  background-color: #fff;
-  color: #374151;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  margin-right: 2px;
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:6px 12px; border-radius:999px; font-size:13px; font-weight:700;
+  border:1px solid #d1d5db; background-color:#fff; color:#374151;
+  transition:all 0.2s ease; white-space:nowrap; margin-right:2px;
 }
 
 .radio-tab--active .radio-label {
-  background-color: var(--color-primary, #ff6b35);
-  color: #fff;
-  border-color: var(--color-primary, #ff6b35);
+  background-color:var(--color-primary, #000000); color:#fff;
+  border-color:var(--color-primary, #000000);
 }
 
 .radio-input:checked + .radio-label {
-  background-color: var(--color-primary, #ff6b35);
-  color: #fff;
-  border-color: var(--color-primary, #ff6b35);
+  background-color:var(--color-primary, #000000); color:#fff;
+  border-color:var(--color-primary, #000000);
 }
 
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 16px;
-  text-align: center;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:48px 16px; text-align:center;
 }
 </style>

@@ -346,63 +346,41 @@ const cancel = () => {
 
 <style scoped>
 .content-wrapper {
-  padding: 16px;
+  padding:16px;
 }
 
 .input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 0.9rem;
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid #d1d5db; font-size:0.9rem;
 }
 .input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px #2563eb20;
+  outline:none; border-color:#2563eb; box-shadow:0 0 0 1px #2563eb20;
 }
 
 .button-group {
-  display: flex;
-  gap: 4px;
-  margin-top: 24px;
+  display:flex; gap:4px; margin-top:24px;
 }
 
 .btn-primary {
-  background: #2563eb;
-  color: #fff;
-  height: 50px;
-  width: 50%;
-  border-radius: 10px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
+  background:#2563eb; color:#fff; height:50px; width:50%;
+  border-radius:10px; font-weight:600; border:none; cursor:pointer;
 }
 
 .btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
-  height: 50px;
-  width: 50%;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  border: none;
-  cursor: pointer;
+  background:#e5e7eb; color:#374151; height:50px; width:50%;
+  border-radius:10px; font-size:0.9rem; border:none; cursor:pointer;
 }
 
 .group-section {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow:0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* 공개 범위 라디오 버튼 스타일 */
 input[type="radio"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #2563eb;
+  width:18px; height:18px; cursor:pointer; accent-color:#2563eb;
 }
 
 input[type="radio"]:checked {
-  accent-color: #2563eb;
+  accent-color:#2563eb;
 }
 </style>

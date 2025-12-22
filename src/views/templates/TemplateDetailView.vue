@@ -41,7 +41,7 @@
         <section class="bg-white p-4 rounded-xl border shadow-sm template-detail-info-section">
           <div class="flex items-start justify-between mb-2 template-detail-info-header">
             <h2 class="text-lg font-bold text-gray-800 template-detail-info-title">{{ template.title }}</h2>
-            <span class="text-xs px-2 py-1 bg-orange-500 text-white rounded template-detail-info-category">
+            <span class="text-xs px-2 py-1 bg-black text-white rounded template-detail-info-category">
               {{ template.category }}
             </span>
           </div>
@@ -222,6 +222,6 @@ onMounted(() => {
 
 <style scoped>
 .detail-content {
-  padding: 16px;
+  padding:16px;
 }
 </style>

@@ -121,6 +121,6 @@ watch(
 
 <style scoped>
 .icon-btn {
-  padding: 6px;
+  padding:6px;
 }
 </style>

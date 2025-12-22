@@ -154,51 +154,30 @@
   <style scoped>
   .min-h-screen{padding:50px 16px;}
   .input {
-    width: 100%;
-    border: none;
-    border-bottom: 1px solid #999;
-    padding: 10px 12px;
-    border-radius: 0;
-    font-size: 14px;
-    box-sizing:border-box;
+    width:100%; border:none; border-bottom:1px solid #999;
+    padding:10px 12px; border-radius:0; font-size:14px; box-sizing:border-box;
   }
   
   .primary-btn {
-    width: 100%;
-    background: #2563eb;
-    color: #fff;
-    padding: 12px 0;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
+    width:100%; background:#2563eb; color:#fff;
+    padding:12px 0; border-radius:10px; font-weight:600; cursor:pointer;
   }
   .primary-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    opacity:0.6; cursor:not-allowed;
   }
   
   .google-btn {
-    width: 100%;
-    background: #fff;
-    border: 1px solid #d1d5db;
-    padding: 12px 0;
-    border-radius: 10px;
-    font-weight: 600;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
+    width:100%; background:#fff; border:1px solid #d1d5db;
+    padding:12px 0; border-radius:10px; font-weight:600;
+    display:flex; justify-content:center; align-items:center; gap:10px; cursor:pointer;
   }
   .google-btn:hover:not(:disabled) {
-    background: #f9fafb;
+    background:#f9fafb;
   }
   .google-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+    opacity:0.6; cursor:not-allowed;
   }
   .icon {
-    width: 20px;
-    height: 20px;
+    width:20px; height:20px;
   }
   </style>

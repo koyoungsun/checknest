@@ -209,8 +209,7 @@ onMounted(() => {
 
 <style scoped>
 [contenteditable="true"]:empty:before {
-  content: attr(placeholder);
-  color: #9ca3af;
+  content:attr(placeholder); color:#9ca3af;
 }
 </style>
 
